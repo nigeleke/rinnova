@@ -1,0 +1,60 @@
+.medications {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.medications__list {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 1;
+    gap: 0.5rem;
+}
+
+.medications__list-item {
+    display: grid;
+    grid-template-columns: minmax(0, 20ch) auto;
+    align-items: center;
+    gap: 1rem;
+
+    span {
+        min-block-size: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.medications__add-form {
+    display: grid;
+    grid-template-columns: auto minmax(20ch, 40ch);
+    gap: 0.75rem 1rem;
+    align-items: start;
+}
+
+.medications__add-form > label {
+    display: contents;
+}
+
+.medications__add-form > label > input,
+.medications__add-form > label > textarea {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.medications__add-form > button {
+    grid-column: 2;
+    justify-self: start;
+}
+
+.medications__add-form__warning {
+    grid-column: 1 / -1;
+    margin: 0;
+
+    background-color: var(--warning-background-color);
+    color: var(--warning-color);
+
+    border: 1px solid var(--warning-background-color);
+    border-radius: 0.5rem;
+}

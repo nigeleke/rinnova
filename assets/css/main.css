@@ -1,0 +1,32 @@
+:root {
+    --warning-background-color: #ff8800;
+    --warning-colour: contrast-colour(var(--warning-background-color));
+}
+
+* {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    box-sizing: border-box;
+    margin: 0;
+}
+
+html,
+body {
+    margin: 0;
+    block-size: 100dvh;
+}
+
+body {
+    background-color: #0f1116;
+    color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#main {
+    block-size: 100%;
+    min-block-size: 0;
+}
+
+button {
+    border-radius: 10px;
+    inline-size: fit-content;
+}

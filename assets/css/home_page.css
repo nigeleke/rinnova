@@ -1,0 +1,53 @@
+.home-page {
+    display: grid;
+    grid-template-rows: auto auto auto auto 1fr;
+    gap: 1rem;
+    block-size: 100%;
+
+    &:has(.selected-reminders) {
+        grid-template-rows: minmax(0, 1fr) auto auto auto;
+    }
+    &:has(.selected-refills) {
+        grid-template-rows: auto minmax(0, 1fr) auto auto;
+    }
+    &:has(.selected-prescriptions) {
+        grid-template-rows: auto auto minmax(0, 1fr) auto;
+    }
+    &:has(.selected-medications) {
+        grid-template-rows: auto auto auto minmax(0, 1fr);
+    }
+}
+
+.home-page__panel {
+    background-color: var(--panel-background-color);
+    color: contrast-color(var(--panel-background-color));
+    border: solid 2px;
+    border-color: var(--panel-background-color);
+    border-radius: 20px;
+    padding-inline: 1rem;
+
+    h2 {
+        cursor:pointer;
+    }
+}
+
+.home-page__panel.unselected h2 {
+    font-size: 0.9rem;
+    opacity: 0.5;
+}
+
+.home-page__panel.reminders {
+    --panel-background-color: #E0FFFF;
+}
+
+.home-page__panel.refills {
+    --panel-background-color: #FFFACD;
+}
+
+.home-page__panel.prescriptions {
+    --panel-background-color: #B0E0E6;
+}
+
+.home-page__panel.medications {
+    --panel-background-color: #FFE4E1;
+}
