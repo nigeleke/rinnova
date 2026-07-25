@@ -9,8 +9,6 @@ use crate::domain::Logbook;
 
 #[component]
 pub fn Medications() -> Element {
-    let logbook = use_context::<Signal<Logbook>>();
-
     rsx! {
         document::Stylesheet { href: asset!("/assets/css/medications.css")}
         div {
@@ -37,13 +35,10 @@ fn MedicationList() -> Element {
         div {
             class: "medications__list",
             for (id, description) in medications {
-                div {
-                    class: "medications__list-item",
-                    span { key: "{id}", "{description}"},
-                    button {
-                        onclick: move |_| logbook.write().remove_medication(id),
-                        "-"
-                    }
+                span { key: "{id}", "{description}"},
+                button {
+                    onclick: move |_| logbook.write().remove_medication(id),
+                    "-"
                 }
             }
         }
@@ -61,9 +56,7 @@ fn AddMedication() -> Element {
     let mut draft = use_signal(DraftMedication::default);
 
     let mut can_add = use_signal(|| false);
-    use_effect(move || {
-        can_add.set(draft.read().is_valid());
-    });
+    use_effect(move || can_add.set(draft.read().is_valid()));
 
     let mut warning = use_signal(String::default);
 
@@ -77,6 +70,8 @@ fn AddMedication() -> Element {
                     let name = medication.to_string();
                     if let Err(error) = logbook.write().add_medication(medication) {
                         warning.set(tid!(&error.to_string(), name: name));
+                    } else {
+                        warning.write().clear();
                     };
                     draft.set(DraftMedication::default());
                 }
@@ -114,7 +109,7 @@ fn AddMedication() -> Element {
             }
 
             p {
-                class: "medications__add-panel__warning",
+                class: "medications__add-form__warning",
                 hidden: warning.read().is_empty(),
                 {warning}
             }

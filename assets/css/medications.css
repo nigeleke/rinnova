@@ -1,22 +1,16 @@
 .medications {
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: 1rem;
 }
 
 .medications__list {
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 1;
-    gap: 0.5rem;
-}
-
-.medications__list-item {
+    align-self: center;
+    min-inline-size: 20ch;
+    max-inline-size: 40ch;
     display: grid;
-    grid-template-columns: minmax(0, 20ch) auto;
-    align-items: center;
-    gap: 1rem;
+    grid-template-columns: auto auto;
+    gap: 0.5rem;
 
     span {
         min-block-size: 0;
@@ -51,6 +45,7 @@
 .medications__add-form__warning {
     grid-column: 1 / -1;
     margin: 0;
+    padding-inline: 1rem;
 
     background-color: var(--warning-background-color);
     color: var(--warning-color);
