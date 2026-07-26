@@ -66,7 +66,7 @@ terms-continue-button =
 panel-name =
     .reminders = Reminders
     .refills = Refills
-    .prescriptions = Prescriptions
+    .scripts = Prescriptions
     .medications = Medications
 
 

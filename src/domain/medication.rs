@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub struct MedicationId(Uuid);
 
 impl MedicationId {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self(Uuid::now_v7())
     }
 }
@@ -25,10 +25,11 @@ pub struct Medication {
 }
 
 impl Medication {
-    pub fn new(name: String, strength: String, notes: String) -> Self {
+    pub fn new(name: &str, strength: &str, notes: &str) -> Self {
         let id = MedicationId::new();
         let name = name.trim().to_owned();
         let strength = strength.trim().to_owned();
+        let notes = notes.to_owned();
         Self {
             id,
             name,
@@ -39,6 +40,10 @@ impl Medication {
 
     pub fn id(&self) -> MedicationId {
         self.id
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
     }
 
     pub fn equivalent_to(&self, other: &Self) -> bool {

@@ -13,6 +13,6 @@ impl DraftMedication {
     }
 
     pub fn into_medication(self) -> Medication {
-        Medication::new(self.name, self.strength, self.notes)
+        Medication::new(&self.name, &self.strength, &self.notes)
     }
 }

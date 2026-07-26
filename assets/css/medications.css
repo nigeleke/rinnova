@@ -1,6 +1,6 @@
 .medications {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
     gap: 1rem;
 }
 
@@ -10,7 +10,12 @@
     max-inline-size: 40ch;
     display: grid;
     grid-template-columns: auto auto;
+    grid-auto-rows: max-content;
     gap: 0.5rem;
+
+    block-size: 100%;
+    min-block-size: 0;
+    overflow: auto;
 
     span {
         min-block-size: 0;

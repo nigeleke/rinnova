@@ -31,13 +31,21 @@ fn MedicationList() -> Element {
         .collect::<Vec<_>>();
     let zero_medications = medications.is_empty();
 
+    let mut warning = use_signal(String::default);
+
     rsx! {
         div {
             class: "medications__list",
             for (id, description) in medications {
                 span { key: "{id}", "{description}"},
                 button {
-                    onclick: move |_| logbook.write().remove_medication(id),
+                    onclick: move |_| {
+                        if let Err(error) =logbook.write().try_remove_medication(id) {
+                            warning.set(tid!(&error.to_string()));
+                        } else {
+                            warning.write().clear();
+                        }
+                    },
                     "-"
                 }
             }
@@ -68,7 +76,7 @@ fn AddMedication() -> Element {
                 if *can_add.read() {
                     let medication = draft().into_medication();
                     let name = medication.to_string();
-                    if let Err(error) = logbook.write().add_medication(medication) {
+                    if let Err(error) = logbook.write().try_add_medication(medication) {
                         warning.set(tid!(&error.to_string(), name: name));
                     } else {
                         warning.write().clear();

@@ -6,7 +6,7 @@ pub enum View {
     HomePage,
     Reminders,
     Refills,
-    Prescriptions,
+    Scripts,
     Medications,
 }
 
@@ -16,7 +16,7 @@ impl std::fmt::Display for View {
             View::HomePage => "home-page",
             View::Reminders => "reminders",
             View::Refills => "refills",
-            View::Prescriptions => "prescriptions",
+            View::Scripts => "scripts",
             View::Medications => "medications",
         }
         .fmt(f)

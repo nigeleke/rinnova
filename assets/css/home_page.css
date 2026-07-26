@@ -10,7 +10,7 @@
     &:has(.selected-refills) {
         grid-template-rows: auto minmax(0, 1fr) auto auto;
     }
-    &:has(.selected-prescriptions) {
+    &:has(.selected-scripts) {
         grid-template-rows: auto auto minmax(0, 1fr) auto;
     }
     &:has(.selected-medications) {
@@ -44,7 +44,7 @@
     --panel-background-color: #FFFACD;
 }
 
-.home-page__panel.prescriptions {
+.home-page__panel.scripts {
     --panel-background-color: #B0E0E6;
 }
 

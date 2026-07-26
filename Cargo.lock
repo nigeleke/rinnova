@@ -2670,6 +2670,7 @@ dependencies = [
  "jiff",
  "rexie",
  "serde",
+ "serde-wasm-bindgen",
  "this",
  "thiserror 2.0.19",
  "uuid",

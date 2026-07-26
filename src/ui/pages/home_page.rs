@@ -3,7 +3,7 @@ use dioxus_i18n::tid;
 
 use crate::application::Model;
 use crate::application::View;
-use crate::ui::components::{Medications, Prescriptions, Refills, Reminders};
+use crate::ui::components::{Medications, Refills, Reminders, Scripts};
 #[component]
 pub fn HomePage() -> Element {
     rsx! {
@@ -12,7 +12,7 @@ pub fn HomePage() -> Element {
             class: "home-page",
             Panel { view: View::Reminders, Reminders {} }
             Panel { view: View::Refills, Refills {} }
-            Panel { view: View::Prescriptions, Prescriptions {} }
+            Panel { view: View::Scripts, Scripts {} }
             Panel { view: View::Medications, Medications {} }
         }
     }
