@@ -42,10 +42,6 @@ impl Medication {
         self.id
     }
 
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-
     pub fn equivalent_to(&self, other: &Self) -> bool {
         self.name.eq_ignore_ascii_case(&other.name)
             && self.strength.eq_ignore_ascii_case(&other.strength)

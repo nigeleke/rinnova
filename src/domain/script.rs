@@ -4,7 +4,7 @@ use jiff::civil::Date;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::domain::{medication, LogbookError, MedicationId};
+use crate::domain::{LogbookError, MedicationId};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ScriptId(Uuid);
@@ -15,20 +15,14 @@ impl ScriptId {
     }
 }
 
-// impl std::fmt::Display for ScriptId {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         self.0.fmt(f)
-//     }
-// }
-
 #[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub struct ScriptItem {
     medication_id: MedicationId,
-    authorised_repeats: u8,
+    authorised_repeats: usize,
 }
 
 impl ScriptItem {
-    pub fn new(medication_id: MedicationId, authorised_repeats: u8) -> Self {
+    pub fn new(medication_id: MedicationId, authorised_repeats: usize) -> Self {
         Self {
             medication_id,
             authorised_repeats,
@@ -93,7 +87,22 @@ impl Script {
         self.id
     }
 
+    pub fn issued_on(&self) -> Date {
+        self.issued_on
+    }
+
+    pub fn expires_on(&self) -> Date {
+        self.expires_on
+    }
+
     pub fn items(&self) -> impl Iterator<Item = ScriptItem> + '_ {
         self.items.iter().copied()
+    }
+
+    pub fn authorised_supplies(&self, medication_id: MedicationId) -> usize {
+        self.items()
+            .filter_map(|i| (i.medication_id == medication_id).then_some(i.authorised_repeats))
+            .sum::<usize>()
+            + 1usize
     }
 }

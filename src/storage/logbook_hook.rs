@@ -1,4 +1,4 @@
-use dioxus::{core::IntoAttributeValue, prelude::*};
+use dioxus::prelude::*;
 use rexie::{ObjectStore, Rexie, TransactionMode};
 use thiserror::Error;
 
