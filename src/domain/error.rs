@@ -14,6 +14,9 @@ pub enum LogbookError {
     #[error("error.invalid-medication")]
     InvalidMedication(MedicationId),
 
+    #[error("error.medication-used-in-script")]
+    MedicationUsedInScript(MedicationId),
+
     #[error("error.invalid-expiry-date")]
     InvalidExpiryDate(Date),
 

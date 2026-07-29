@@ -1,38 +1,16 @@
+mod id;
+mod item;
+
+pub use id::ScriptId;
+pub use item::ScriptItem;
+
+// ------------------------------------
 use std::collections::HashSet;
 
 use jiff::civil::Date;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
-use crate::domain::{LogbookError, MedicationId};
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ScriptId(Uuid);
-
-impl ScriptId {
-    pub fn new() -> Self {
-        Self(Uuid::now_v7())
-    }
-}
-
-#[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash)]
-pub struct ScriptItem {
-    medication_id: MedicationId,
-    authorised_repeats: usize,
-}
-
-impl ScriptItem {
-    pub fn new(medication_id: MedicationId, authorised_repeats: usize) -> Self {
-        Self {
-            medication_id,
-            authorised_repeats,
-        }
-    }
-
-    pub fn medication_id(&self) -> MedicationId {
-        self.medication_id
-    }
-}
+use crate::domain::{LogbookError, MedicationId, SupplyCount};
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Script {
@@ -70,7 +48,7 @@ impl Script {
     ) -> Result<(), LogbookError> {
         let mut seen = HashSet::new();
 
-        let medication_ids = items.iter().map(|i| i.medication_id).collect::<Vec<_>>();
+        let medication_ids = items.iter().map(|i| i.medication_id()).collect::<Vec<_>>();
 
         if expires_on <= issued_on {
             Err(LogbookError::InvalidExpiryDate(expires_on))
@@ -95,14 +73,18 @@ impl Script {
         self.expires_on
     }
 
+    pub fn is_valid_on(&self, date: Date) -> bool {
+        self.issued_on <= date && date <= self.expires_on
+    }
+
     pub fn items(&self) -> impl Iterator<Item = ScriptItem> + '_ {
         self.items.iter().copied()
     }
 
-    pub fn authorised_supplies(&self, medication_id: MedicationId) -> usize {
+    pub fn authorised_supplies(&self, medication_id: MedicationId) -> SupplyCount {
         self.items()
-            .filter_map(|i| (i.medication_id == medication_id).then_some(i.authorised_repeats))
-            .sum::<usize>()
-            + 1usize
+            .filter_map(|i| (i.medication_id() == medication_id).then_some(i.authorised_repeats()))
+            .sum::<SupplyCount>()
+            + SupplyCount::ONE
     }
 }

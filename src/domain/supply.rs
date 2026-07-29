@@ -1,17 +1,14 @@
+mod count;
+mod id;
+
+pub use count::SupplyCount;
+pub use id::SupplyId;
+
+// ------------------------------------
 use jiff::civil::Date;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::domain::{MedicationId, ScriptId};
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct SupplyId(Uuid);
-
-impl SupplyId {
-    fn new() -> Self {
-        Self(Uuid::now_v7())
-    }
-}
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Supply {
