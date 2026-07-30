@@ -2,7 +2,6 @@ mod fixture;
 use fixture::Fixture;
 
 // ------------------------------------
-use jiff::Span;
 use scriptpilot::prelude::*;
 
 #[test]
@@ -623,8 +622,9 @@ fn medication_with_no_supplies_remaining_reports_no_repeats() {
     let status = fixture.logbook.evaluate_status(Fixture::today());
 
     assert!(status.contains(&Status::ScriptExhausted(script_id)));
+    assert!(status.contains(&Status::NoRepeats(script_id, medication_id)));
     assert!(status.contains(&Status::MedicationNotCovered(medication_id)));
-    assert_eq!(status.len(), 2);
+    assert_eq!(status.len(), 3);
 }
 
 #[test]
@@ -669,8 +669,9 @@ fn medication_with_exhausted_script_reports_no_covering_script() {
     let status = fixture.logbook.evaluate_status(Fixture::today());
 
     assert!(status.contains(&Status::ScriptExhausted(script_id)));
+    assert!(status.contains(&Status::NoRepeats(script_id, medication_id)));
     assert!(status.contains(&Status::MedicationNotCovered(medication_id)));
-    assert_eq!(status.len(), 2);
+    assert_eq!(status.len(), 3);
 }
 
 #[test]
@@ -771,5 +772,239 @@ fn medication_covered_by_multiple_scripts_sums_available_supplies() {
     assert_eq!(
         fixture.logbook.medication_supply_count(medication_id),
         SupplyCount::from(7)
+    );
+}
+
+#[test]
+fn script_health_is_ok_when_all_statuses_are_ok() {
+    let fixture = Fixture::default()
+        .medication("med01")
+        .current_script("script01", &[("med01", 5)])
+        .supply("supply01", "script01", "med01", Fixture::today())
+        .supply("supply02", "script01", "med01", Fixture::today());
+
+    let script_id = fixture.script_id("script01");
+
+    assert_eq!(
+        fixture.logbook.script_health(script_id, Fixture::today()),
+        Health::Ok
+    );
+}
+
+#[test]
+fn script_health_is_attention_when_script_due_to_expire() {
+    let fixture = Fixture::default()
+        .medication("med01")
+        .expiring_script("script01", &[("med01", 5)])
+        .supply("supply01", "script01", "med01", Fixture::today())
+        .supply("supply02", "script01", "med01", Fixture::today());
+
+    let script_id = fixture.script_id("script01");
+
+    assert_eq!(
+        fixture.logbook.script_health(script_id, Fixture::today()),
+        Health::Attention
+    );
+}
+
+#[test]
+fn script_health_is_attention_when_last_repeat_remaining() {
+    let fixture = Fixture::default()
+        .medication("med01")
+        .current_script("script01", &[("med01", 2)])
+        .supply("supply01", "script01", "med01", Fixture::today())
+        .supply("supply02", "script01", "med01", Fixture::today());
+
+    let script_id = fixture.script_id("script01");
+
+    assert_eq!(
+        fixture.logbook.script_health(script_id, Fixture::today()),
+        Health::Attention
+    );
+}
+
+#[test]
+fn script_health_is_attention_when_due_to_expire_and_last_repeat() {
+    let fixture = Fixture::default()
+        .medication("med01")
+        .expiring_script("script01", &[("med01", 3)])
+        .supply("supply01", "script01", "med01", Fixture::today())
+        .supply("supply02", "script01", "med01", Fixture::today());
+
+    let script_id = fixture.script_id("script01");
+
+    assert_eq!(
+        fixture.logbook.script_health(script_id, Fixture::today()),
+        Health::Attention
+    );
+}
+
+#[test]
+fn script_health_is_critical_when_script_expired() {
+    let fixture = Fixture::default()
+        .medication("med01")
+        .expired_script("script01", &[("med01", 5)]);
+
+    let script_id = fixture.script_id("script01");
+
+    assert_eq!(
+        fixture.logbook.script_health(script_id, Fixture::today()),
+        Health::Critical
+    );
+}
+
+#[test]
+fn script_health_is_critical_when_no_repeats_remain() {
+    let fixture = Fixture::default()
+        .medication("med01")
+        .current_script("script01", &[("med01", 1)])
+        .supply("supply01", "script01", "med01", Fixture::today())
+        .supply("supply02", "script01", "med01", Fixture::today());
+
+    let script_id = fixture.script_id("script01");
+
+    assert_eq!(
+        fixture.logbook.script_health(script_id, Fixture::today()),
+        Health::Critical
+    );
+}
+
+#[test]
+fn script_health_is_critical_when_due_to_expire_and_no_repeats_remain() {
+    let fixture = Fixture::default()
+        .medication("med01")
+        .expiring_script("script01", &[("med01", 1)])
+        .supply("supply01", "script01", "med01", Fixture::today())
+        .supply("supply02", "script01", "med01", Fixture::today());
+
+    let script_id = fixture.script_id("script01");
+
+    assert_eq!(
+        fixture.logbook.script_health(script_id, Fixture::today()),
+        Health::Critical
+    );
+}
+
+#[test]
+fn script_health_is_critical_when_expired_and_no_repeats_remain() {
+    let fixture = Fixture::default()
+        .medication("med01")
+        .expired_script("script01", &[("med01", 2)])
+        .supply("supply01", "script01", "med01", Fixture::past())
+        .supply("supply02", "script01", "med01", Fixture::yesterday());
+
+    let script_id = fixture.script_id("script01");
+
+    assert_eq!(
+        fixture.logbook.script_health(script_id, Fixture::today()),
+        Health::Critical
+    );
+}
+
+#[test]
+fn script_health_ignores_other_scripts() {
+    let fixture = Fixture::default()
+        .medication("med01")
+        .medication("med02")
+        .current_script("script01", &[("med01", 5)])
+        .expired_script("script02", &[("med02", 5)]);
+
+    let script_id = fixture.script_id("script01");
+
+    assert_eq!(
+        fixture.logbook.script_health(script_id, Fixture::today()),
+        Health::Ok
+    );
+}
+
+#[test]
+fn supply_health_is_ok_when_supply_is_available() {
+    let fixture = Fixture::default()
+        .medication("med01")
+        .current_script("script01", &[("med01", 5)])
+        .supply("supply01", "script01", "med01", Fixture::today());
+
+    let script_id = fixture.script_id("script01");
+    let medication_id = fixture.medication_id("med01");
+
+    assert_eq!(
+        fixture
+            .logbook
+            .supply_health(script_id, medication_id, Fixture::today()),
+        Health::Ok
+    );
+}
+
+#[test]
+fn supply_health_is_attention_when_last_supply_remaining() {
+    let fixture = Fixture::default()
+        .medication("med01")
+        .current_script("script01", &[("med01", 1)])
+        .supply("supply01", "script01", "med01", Fixture::today());
+
+    let script_id = fixture.script_id("script01");
+    let medication_id = fixture.medication_id("med01");
+
+    assert_eq!(
+        fixture
+            .logbook
+            .supply_health(script_id, medication_id, Fixture::today()),
+        Health::Attention
+    );
+}
+
+#[test]
+fn supply_health_is_critical_when_no_supplies_remaining() {
+    let fixture = Fixture::default()
+        .medication("med01")
+        .current_script("script01", &[("med01", 0)])
+        .supply("supply01", "script01", "med01", Fixture::today());
+
+    let script_id = fixture.script_id("script01");
+    let medication_id = fixture.medication_id("med01");
+
+    assert_eq!(
+        fixture
+            .logbook
+            .supply_health(script_id, medication_id, Fixture::today()),
+        Health::Critical
+    );
+}
+
+#[test]
+fn supply_health_ignores_other_medications_on_same_script() {
+    let fixture = Fixture::default()
+        .medication("med01")
+        .medication("med02")
+        .current_script("script01", &[("med01", 1), ("med02", 5)])
+        .supply("supply01", "script01", "med01", Fixture::today());
+
+    let script_id = fixture.script_id("script01");
+    let medication_id = fixture.medication_id("med02");
+
+    assert_eq!(
+        fixture
+            .logbook
+            .supply_health(script_id, medication_id, Fixture::today()),
+        Health::Ok
+    );
+}
+
+#[test]
+fn supply_health_ignores_other_scripts() {
+    let fixture = Fixture::default()
+        .medication("med01")
+        .current_script("script01", &[("med01", 5)])
+        .current_script("script02", &[("med01", 1)])
+        .supply("supply01", "script02", "med01", Fixture::today());
+
+    let script_id = fixture.script_id("script01");
+    let medication_id = fixture.medication_id("med01");
+
+    assert_eq!(
+        fixture
+            .logbook
+            .supply_health(script_id, medication_id, Fixture::today()),
+        Health::Ok
     );
 }

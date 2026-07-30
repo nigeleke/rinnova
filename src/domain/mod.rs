@@ -12,4 +12,4 @@ pub use medication::{Medication, MedicationId};
 pub use reminder::Reminder;
 pub use script::{Script, ScriptId, ScriptItem};
 pub use supply::{Supply, SupplyCount, SupplyId};
-pub use views::Status;
+pub use views::{Health, Status};

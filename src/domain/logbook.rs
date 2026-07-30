@@ -5,8 +5,8 @@ use jiff::Span;
 use serde::{Deserialize, Serialize};
 
 use crate::domain::{
-    LogbookError, Medication, MedicationId, Reminder, Script, ScriptId, ScriptItem, Status, Supply,
-    SupplyCount,
+    Health, LogbookError, Medication, MedicationId, Reminder, Script, ScriptId, ScriptItem, Status,
+    Supply, SupplyCount,
 };
 
 #[derive(Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -60,7 +60,7 @@ impl Logbook {
     }
 
     pub fn try_add_script(&mut self, script: Script) -> Result<(), LogbookError> {
-        let duplicated = |s: &&Script| &s.id() == &script.id();
+        let duplicated = |s: &&Script| s.id() == script.id();
         let duplicate = self.scripts.iter().find(duplicated);
 
         let valid_medication_ids = self
@@ -218,7 +218,6 @@ impl Logbook {
         self.scripts
             .iter()
             .filter(move |script| script.is_valid_on(as_of))
-            .filter(move |script| !self.is_script_exhausted(script))
     }
 
     fn script_supply_statuses<'a>(
@@ -246,9 +245,16 @@ impl Logbook {
         self.medications.iter().map(move |medication| {
             let medication_id = medication.id();
 
+            let valid_with_supply = |scripts: &Vec<&Script>| {
+                scripts
+                    .iter()
+                    .filter(|s| self.script_supply_count(s.id(), medication_id) > SupplyCount::ZERO)
+                    .any(|s| s.is_valid_on(as_of))
+            };
+
             let covered = scripts_by_medication
-                .get(&medication.id())
-                .map(|scripts| scripts.iter().any(|s| s.is_valid_on(as_of)))
+                .get(&medication_id)
+                .map(valid_with_supply)
                 .unwrap_or(false);
 
             if covered {
@@ -280,6 +286,38 @@ impl Logbook {
             .for_each(|value| value.sort_by_key(|s| s.issued_on()));
 
         medication_scripts
+    }
+
+    pub fn script_health(&self, script_id: ScriptId, as_of: Date) -> Health {
+        self.evaluate_status(as_of)
+            .iter()
+            .filter(|status| status.references_script(script_id))
+            .filter_map(|status| status.script_health())
+            .max()
+            .unwrap_or(Health::Ok)
+    }
+
+    pub fn supply_health(
+        &self,
+        script_id: ScriptId,
+        medication_id: MedicationId,
+        as_of: Date,
+    ) -> Health {
+        self.evaluate_status(as_of)
+            .iter()
+            .filter(|status| status.references_supply(script_id, medication_id))
+            .filter_map(|status| status.supply_health())
+            .max()
+            .unwrap_or(Health::Ok)
+    }
+
+    pub fn medication_health(&self, medication_id: MedicationId, as_of: Date) -> Health {
+        self.evaluate_status(as_of)
+            .iter()
+            .filter(|status| status.references_medication(medication_id))
+            .filter_map(|status| status.medication_health())
+            .min()
+            .unwrap_or(Health::Critical)
     }
 
     pub fn reminders_for(&self, _date: Date) -> impl Iterator<Item = &Reminder> {

@@ -160,18 +160,4 @@ impl Fixture {
     pub fn has_supply(&self, id: SupplyId) -> bool {
         self.logbook.supplies().iter().any(|s| s.id() == id)
     }
-
-    pub fn supply_id(&self, name: &str) -> SupplyId {
-        self.supplies
-            .get(name)
-            .copied()
-            .unwrap_or_else(|| panic!("fixture supply `{name}` does not exist"))
-    }
-
-    pub fn supply_id_or_unknown(&self, name: &str) -> SupplyId {
-        self.supplies
-            .get(name)
-            .copied()
-            .unwrap_or_else(SupplyId::new)
-    }
 }

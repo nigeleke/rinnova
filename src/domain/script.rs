@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::domain::{LogbookError, MedicationId, SupplyCount};
 
-#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Script {
     id: ScriptId,
     issued_on: Date,

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::domain::{MedicationId, SupplyCount};
 
-#[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub struct ScriptItem {
     medication_id: MedicationId,
     authorised_repeats: SupplyCount,

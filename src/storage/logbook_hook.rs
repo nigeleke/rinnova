@@ -13,8 +13,6 @@ pub enum StorageError {
     Serde(#[from] serde_wasm_bindgen::Error),
 }
 
-pub type StorageResult<T> = Result<T, StorageError>;
-
 pub fn use_logbook() -> Signal<Logbook> {
     let mut logbook = use_signal(Logbook::default);
 
