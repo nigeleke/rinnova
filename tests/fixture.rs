@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use jiff::civil::Date;
 use jiff::{Span, Zoned};
-use scriptpilot::prelude::*;
+use rinnova::prelude::*;
 
 #[derive(Default)]
 pub struct Fixture {

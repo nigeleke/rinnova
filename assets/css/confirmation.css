@@ -1,0 +1,28 @@
+.confirmation {
+    display: grid;
+    grid-template-rows: auto auto;
+    gap: 1rem;
+    padding: 1.5rem;
+}
+
+.confirmation-info {
+    border-left: 0.25rem solid var(--info-background-color);
+}
+
+.confirmation-warning {
+    border-left: 0.25rem solid var(--warning-background-color);
+}
+
+.confirmation-destructive {
+    border-left: 0.25rem solid var(--destructive-background-color);
+}
+
+.confirmation-error {
+    border-left: 0.25rem solid var(--error-background-color);
+}
+
+.confirmation__commands {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}

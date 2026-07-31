@@ -23,6 +23,10 @@ impl Logbook {
         &self.medications
     }
 
+    pub fn medication(&self, id: MedicationId) -> Option<&Medication> {
+        self.medications.iter().find(|m| m.id() == id)
+    }
+
     pub fn try_add_medication(&mut self, medication: Medication) -> Result<(), LogbookError> {
         let duplicated =
             |m: &&Medication| m.id() == medication.id() || m.equivalent_to(&medication);

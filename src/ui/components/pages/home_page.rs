@@ -29,7 +29,7 @@ fn Panel(view: View, children: Element) -> Element {
     rsx! {
         div {
             class: "home-page__panel",
-            class: "{view}",
+            class: "{view}-parent",
             class: if show_as_selected { "selected" } else { "unselected" },
             class: if show_children { "selected-{view}" },
 

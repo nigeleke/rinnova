@@ -1,0 +1,4 @@
+.delete-button {
+    background-color: var(--destructive-background-color);
+    color: var(--destructive-color);
+}

@@ -4,7 +4,7 @@ use dioxus_i18n::prelude::*;
 use crate::application::Setup;
 use crate::i18n;
 use crate::storage;
-use crate::ui::pages::{HomePage, TermsPage, WelcomePage};
+use crate::ui::components::{HomePage, Notification, TermsPage, WelcomePage};
 
 #[component]
 pub fn App() -> Element {
@@ -13,6 +13,9 @@ pub fn App() -> Element {
 
     let logbook = storage::use_logbook();
     provide_context(logbook);
+
+    let notifications = use_signal(Vec::<Notification>::default);
+    provide_context(notifications);
 
     let language = i18n::use_preferred_language();
     use_effect(move || {

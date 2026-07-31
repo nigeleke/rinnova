@@ -31,6 +31,30 @@ impl Medication {
         self.id
     }
 
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn name_mut(&mut self) -> &mut String {
+        &mut self.name
+    }
+
+    pub fn strength(&self) -> &str {
+        &self.strength
+    }
+
+    pub fn strength_mut(&mut self) -> &mut String {
+        &mut self.strength
+    }
+
+    pub fn notes(&self) -> &str {
+        &self.notes
+    }
+
+    pub fn notes_mut(&mut self) -> &mut String {
+        &mut self.notes
+    }
+
     pub fn equivalent_to(&self, other: &Self) -> bool {
         self.name.eq_ignore_ascii_case(&other.name)
             && self.strength.eq_ignore_ascii_case(&other.strength)

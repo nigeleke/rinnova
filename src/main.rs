@@ -1,4 +1,4 @@
-use scriptpilot::App;
+use rinnova::App;
 
 fn main() {
     dioxus::launch(App);

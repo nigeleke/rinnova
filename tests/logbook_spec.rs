@@ -2,7 +2,7 @@ mod fixture;
 use fixture::Fixture;
 
 // ------------------------------------
-use scriptpilot::prelude::*;
+use rinnova::prelude::*;
 
 #[test]
 fn medication_can_be_added() {

@@ -36,7 +36,7 @@ pub fn use_logbook() -> Signal<Logbook> {
     logbook
 }
 
-const DATABASE_NAME: &str = "scriptpilot";
+const DATABASE_NAME: &str = "rinnova";
 const DATABASE_VERSION: u32 = 1;
 const LOGBOOK_STORE: &str = "logbook";
 const LOGBOOK_KEY: &str = "current";

@@ -4,6 +4,12 @@
     gap: 1rem;
     block-size: 100%;
 
+    &:not(:has(.unselected)) {
+        gap: 3rem;
+        padding-block-start: 3rem;
+        padding-inline: 1rem;
+    }
+
     &:has(.selected-reminders) {
         grid-template-rows: minmax(0, 1fr) auto auto auto;
     }
@@ -26,6 +32,9 @@
     border-radius: 20px;
     padding-inline: 1rem;
 
+    display: grid;
+    grid-template-rows: auto 1fr;
+
     h2 {
         cursor:pointer;
     }
@@ -36,18 +45,18 @@
     opacity: 0.5;
 }
 
-.home-page__panel.reminders {
+.home-page__panel.reminders-parent {
     --panel-background-color: #E0FFFF;
 }
 
-.home-page__panel.refills {
+.home-page__panel.refills-parent {
     --panel-background-color: #FFFACD;
 }
 
-.home-page__panel.scripts {
+.home-page__panel.scripts-parent {
     --panel-background-color: #B0E0E6;
 }
 
-.home-page__panel.medications {
+.home-page__panel.medications-parent {
     --panel-background-color: #FFE4E1;
 }

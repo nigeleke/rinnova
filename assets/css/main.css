@@ -1,6 +1,19 @@
 :root {
+    --destructive-background-color: #d32f2f;
+    --destructive-color: contrast-color(var(--destructive-background-color));
+
     --warning-background-color: #ff8800;
-    --warning-colour: contrast-colour(var(--warning-background-color));
+    --warning-color: contrast-color(var(--warning-background-color));
+
+    --success-background-color: #2e7d32;
+    --success-color: contrast-color(var(--success-background-color));
+
+    --disabled-background-color: #d9d9d9;
+    --disabled-colour: #6b6b6b;
+    --disabled-border-color: #bdbdbd;
+
+    --background-color:  #0f1116;
+    --color: contrast-color(var(--background-color));
 }
 
 * {
@@ -16,8 +29,8 @@ body {
 }
 
 body {
-    background-color: #0f1116;
-    color: #ffffff;
+    background-color: var(--background-color);
+    color: var(--color);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
@@ -29,4 +42,21 @@ body {
 button {
     border-radius: 10px;
     inline-size: fit-content;
+    min-inline-size: 8ch;
+}
+
+button:disabled {
+    background-color: var(--disabled-background-color);
+    color: var(--disabled-colour);
+    border-color: var(--disabled-border-color);
+}
+
+ul,
+ol {
+    margin: 0;
+    padding-inline: 0;
+}
+
+li + li {
+    margin-top: 0.5rem;
 }

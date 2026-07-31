@@ -1,22 +1,17 @@
 .medications {
     display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    block-size: 100%;
     gap: 1rem;
 }
 
 .medications__list {
-    align-self: center;
-    min-inline-size: 20ch;
-    max-inline-size: 40ch;
-    display: grid;
-    grid-template-columns: auto auto;
-    grid-auto-rows: max-content;
-    gap: 0.5rem;
-
-    block-size: 100%;
+    list-style: none;
     min-block-size: 0;
     overflow: auto;
+}
 
+.medications__list-item {
     span {
         min-block-size: 0;
         overflow: hidden;
@@ -25,29 +20,38 @@
     }
 }
 
-.medications__add-form {
-    display: grid;
-    grid-template-columns: auto minmax(20ch, 40ch);
+.medications__list-item.selected {
+    background-color: red;
+}
+
+.medications__commands {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.medications__form {
+    display: flex;
+    flex-direction: column;
     gap: 0.75rem 1rem;
     align-items: start;
 }
 
-.medications__add-form > label {
+.medications__form > label {
     display: contents;
 }
 
-.medications__add-form > label > input,
-.medications__add-form > label > textarea {
+.medications__form > label > input,
+.medications__form > label > textarea {
     width: 100%;
     box-sizing: border-box;
 }
 
-.medications__add-form > button {
-    grid-column: 2;
+/*.medications__form > button {
     justify-self: start;
-}
+}*/
 
-.medications__add-form__warning {
+.medications__form__warning {
     grid-column: 1 / -1;
     margin: 0;
     padding-inline: 1rem;

@@ -1,0 +1,18 @@
+.modal {
+    position: fixed;
+    inset: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgb(0 0 0 / 40%);
+    z-index: 1000;
+}
+
+.modal__content {
+    background-color: var(--background-color);
+    color: var(--color);
+    border-radius: .5rem;
+    overflow: auto;
+}

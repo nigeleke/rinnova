@@ -1,12 +1,12 @@
 [package]
-name = "scriptpilot"
+name = "rinnova"
 version = "0.1.0"
 authors = ["Nigel Eke"]
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 delegate = "0.13.5"
-dioxus = { version = "0.7.1", features = [] }
+dioxus = { version = "0.7.10", features = [] }
 dioxus-i18n = "0.5.1"
 dioxus-sdk = { version = "0.7.0", features = ["storage"] }
 jiff = { version = "0.2.34", features = ["js", "serde"] }
