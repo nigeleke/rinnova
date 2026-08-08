@@ -2,6 +2,8 @@ use dioxus::prelude::*;
 use dioxus_i18n::prelude::*;
 
 use crate::application::Setup;
+use crate::domain::Date;
+use crate::domain::LogbookSnapshot;
 use crate::i18n;
 use crate::storage;
 use crate::ui::components::{HomePage, Notification, Notifications, TermsPage, WelcomePage};
@@ -13,6 +15,14 @@ pub fn App() -> Element {
 
     let logbook = storage::use_logbook();
     provide_context(logbook);
+
+    let mut logbook_snapshot = use_signal(|| LogbookSnapshot::default());
+    provide_context(ReadSignal::from(logbook_snapshot));
+
+    use_effect(move || {
+        let snapshot = LogbookSnapshot::from(&*logbook.read(), Date::today());
+        logbook_snapshot.set(snapshot);
+    });
 
     let notifications = use_signal(Vec::<Notification>::default);
     provide_context(notifications);

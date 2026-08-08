@@ -3,6 +3,7 @@ use crate::domain::{
     ScriptSnapshot, ScriptStatus, SupplyCount,
 };
 
+#[derive(Default)]
 pub struct LogbookSnapshot {
     as_of: Date,
     medications: Vec<MedicationSnapshot>,

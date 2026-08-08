@@ -14,6 +14,16 @@
 
     --background-color:  #0f1116;
     --color: contrast-color(var(--background-color));
+
+    --health-ok-background-color: transparent;
+    --health-ok-color: var(--color);
+
+    --health-attention-background-color: #ffcc80;
+    --health-attention-color: contrast-color(var(--health-attention-background-color));
+
+    --health-critical-background-color: #ef9a9a;
+    --health-critical-color: contrast-color(var(--health-critical-background-color));
+
 }
 
 * {

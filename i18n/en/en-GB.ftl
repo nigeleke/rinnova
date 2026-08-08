@@ -34,6 +34,14 @@ error =
     .medication-out-of-refills = Medication {$medication_id} has no refills on script {$script_id}
 
 # -------------------------------------
+# Status messages
+medication-status =
+    .ok = Ok
+    .last-repeat = Last repeat
+    .no-repeats = No repeats
+
+
+# -------------------------------------
 # Welcome Page
 welcome-heading = rinnova
 

@@ -13,6 +13,8 @@
 }
 
 .medications__list-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
     padding: 0.25rem;
     border: 1px solid transparent color-mix(in srgb, var(--panel-background-color) 90%, black);
     span {
@@ -20,6 +22,14 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+
+    &.health-attention {
+        background-color: var(--health-attention-background-color);
+    }
+
+    &.health-critical {
+        background-color: var(--health-critical-background-color);
     }
 }
 

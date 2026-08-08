@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::domain::LogbookError;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Date(JiffDate);
 
 impl Date {

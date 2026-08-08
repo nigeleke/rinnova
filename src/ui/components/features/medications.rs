@@ -6,7 +6,7 @@ use draft_medication::DraftMedication;
 use dioxus::prelude::*;
 use dioxus_i18n::tid;
 
-use crate::domain::{Logbook, Medication, MedicationId};
+use crate::domain::{Logbook, LogbookSnapshot, MedicationId, MedicationSnapshot};
 use crate::ui::components::{
     AddButton, CancelButton, Confirmation, ConfirmationTheme, DeleteButton, EditButton, Modal,
     Notification, OkButton,
@@ -79,9 +79,9 @@ pub fn Medications() -> Element {
 
 #[component]
 fn MedicationsList() -> Element {
-    let logbook = use_context::<Signal<Logbook>>();
+    let snapshot = use_context::<ReadSignal<LogbookSnapshot>>();
 
-    let medications = logbook.read().medications().to_vec();
+    let medications = snapshot.read().medications().to_vec();
     let zero_medications = medications.is_empty();
 
     rsx! {
@@ -100,17 +100,21 @@ fn MedicationsList() -> Element {
 }
 
 #[component]
-fn MedicationsListItem(medication: Medication) -> Element {
+fn MedicationsListItem(medication: MedicationSnapshot) -> Element {
     let medication_id = medication.id();
+    let status = medication.status();
+
     let mut selected_medication_id = use_context::<Signal<Option<MedicationId>>>();
 
     rsx! {
         li {
             class: "medications__list-item",
+            class: "{medication.health()}",
             class: if *selected_medication_id.read() == Some(medication_id) { "selected" },
             key: "{medication_id}",
             onclick: move |_| selected_medication_id.set(Some(medication_id)),
-            "{medication}"
+            span { "{medication}" }
+            span { {tid!(&status.to_string())} }
         }
     }
 }
