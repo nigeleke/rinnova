@@ -1,11 +1,9 @@
 use std::collections::HashMap;
 
-use jiff::civil::Date;
-use jiff::{Span, Zoned};
-use rinnova::prelude::*;
+use crate::domain::*;
 
-#[derive(Default)]
 pub struct Fixture {
+    today: Date,
     pub logbook: Logbook,
     medications: HashMap<&'static str, MedicationId>,
     scripts: HashMap<&'static str, ScriptId>,
@@ -13,20 +11,30 @@ pub struct Fixture {
 }
 
 impl Fixture {
-    pub fn today() -> Date {
-        Zoned::now().date()
+    pub fn new() -> Self {
+        Self {
+            today: Date::today(),
+            logbook: Default::default(),
+            medications: Default::default(),
+            scripts: Default::default(),
+            supplies: Default::default(),
+        }
     }
 
-    pub fn yesterday() -> Date {
-        Self::today().yesterday().expect("yesterday existed")
+    pub fn today(&self) -> Date {
+        self.today
     }
 
-    pub fn future() -> Date {
-        Self::today() + Span::new().months(6)
+    pub fn yesterday(&self) -> Date {
+        self.today.less_days(1)
     }
 
-    pub fn past() -> Date {
-        Self::yesterday() - Span::new().months(6)
+    pub fn future(&self) -> Date {
+        self.today.plus_months(6)
+    }
+
+    pub fn past(&self) -> Date {
+        self.yesterday().less_months(6)
     }
 
     pub fn medication(self, name: &'static str) -> Self {
@@ -67,7 +75,7 @@ impl Fixture {
     }
 
     pub fn build_current_script(&mut self, items: &[(&str, usize)]) -> Script {
-        self.build_script(Self::today(), Self::future(), items)
+        self.build_script(self.today(), self.future(), items)
     }
 
     pub fn expiring_script(mut self, name: &'static str, items: &[(&str, usize)]) -> Self {
@@ -76,7 +84,7 @@ impl Fixture {
     }
 
     pub fn build_expiring_script(&mut self, items: &[(&str, usize)]) -> Script {
-        self.build_script(Self::past(), Self::today(), items)
+        self.build_script(self.past(), self.today(), items)
     }
 
     pub fn expired_script(mut self, name: &'static str, items: &[(&str, usize)]) -> Self {
@@ -85,7 +93,7 @@ impl Fixture {
     }
 
     pub fn build_expired_script(&mut self, items: &[(&str, usize)]) -> Script {
-        self.build_script(Self::past(), Self::yesterday(), items)
+        self.build_script(self.past(), self.yesterday(), items)
     }
 
     fn script(mut self, name: &'static str, script: Script) -> Self {

@@ -1,2 +1,45 @@
 .refills {
+    display: grid;
+    grid-template-rows: 2fr 1fr;
+    block-size: 100%;
+    min-block-size: 0;
+    gap: 1rem;
+}
+
+.refills__eligible-supplies {
+    display: flex;
+    flex-direction: column;
+    block-size: 100%;
+    min-block-size: 0;
+    gap: 0.5rem;
+}
+
+.refills__eligible-supplies__list {
+    list-style: none;
+    min-block-size: 0;
+    max-block-size: 100%;
+    overflow: auto;
+}
+
+.refills__eligible-supplies__list-item {
+}
+
+.refills__eligible-medications__list {
+    list-style: none;
+}
+
+.refills__eligible-medications__list-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.5rem;
+    padding-block-start: 0.5rem;
+    padding-inline: 1rem;
+}
+
+.refills__eligible-medications__list-item + .refills__eligible-medications__list-item {
+    padding-block-start: 0.5rem;
+}
+
+.refills__previous-supplies {
+    border-top: 2px solid var(--background-color);
 }

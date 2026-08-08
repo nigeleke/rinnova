@@ -1,10 +1,12 @@
-use jiff::civil::Date;
 use thiserror::*;
 
-use crate::domain::{MedicationId, ScriptId, SupplyId};
+use crate::domain::{Date, MedicationId, ScriptId, SupplyId};
 
 #[derive(Clone, Debug, Error)]
 pub enum LogbookError {
+    #[error("error.invalid-date")]
+    InvalidDate(#[from] jiff::Error),
+
     #[error("error.matching-medication")]
     MatchingMedication(String),
 
@@ -13,6 +15,9 @@ pub enum LogbookError {
 
     #[error("error.invalid-medication")]
     InvalidMedication(MedicationId),
+
+    #[error("error.invalid-draft-medication")]
+    InvalidDraftMedication,
 
     #[error("error.medication-used-in-script")]
     MedicationUsedInScript(MedicationId),
@@ -28,6 +33,9 @@ pub enum LogbookError {
 
     #[error("error.invalid-script")]
     InvalidScript(ScriptId),
+
+    #[error("error.invalid-draft-script")]
+    InvalidDraftScript,
 
     #[error("error.script-contains-unknown-medication")]
     UnknownMedication(MedicationId),

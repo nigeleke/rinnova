@@ -1,6 +1,5 @@
-mod level;
-mod notification;
+mod confirmation;
 mod notifications;
 
-pub use notification::Notification;
-pub use notifications::Notifications;
+pub use confirmation::{Confirmation, ConfirmationTheme};
+pub use notifications::{Notification, NotificationId, NotificationLevel, Notifications};

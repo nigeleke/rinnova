@@ -1,0 +1,19 @@
+.date-input {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border: 1px solid transparent;
+}
+
+.date-input__error {
+    border: 1px solid var(--warning-background-color);
+}
+
+.date-input__label {
+    display: inline-block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

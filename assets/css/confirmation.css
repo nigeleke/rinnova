@@ -1,24 +1,34 @@
 .confirmation {
+    --border-color: blue;
+
     display: grid;
     grid-template-rows: auto auto;
     gap: 1rem;
     padding: 1.5rem;
+    border-block-start: 0.25rem solid var(--border-color);
+    background-color: var(--background-color);
 }
 
 .confirmation-info {
-    border-left: 0.25rem solid var(--info-background-color);
+    --border-color: ghostwhite;
 }
 
 .confirmation-warning {
-    border-left: 0.25rem solid var(--warning-background-color);
+    --background-color: var(--warning-background-color);
+    --color: var(--warning-color);
+    --border-color: var(--background-color);
 }
 
 .confirmation-destructive {
-    border-left: 0.25rem solid var(--destructive-background-color);
+    --background-color: var(--destructive-background-color);
+    --color: var(--destructive-color);
+    --border-color: var(--background-color);
 }
 
 .confirmation-error {
-    border-left: 0.25rem solid var(--error-background-color);
+    --background-color: var(--destructive-background-color);
+    --color: var(--destructive-color);
+    --border-color: var(--background-color);
 }
 
 .confirmation__commands {

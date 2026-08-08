@@ -4,7 +4,7 @@ use dioxus_i18n::prelude::*;
 use crate::application::Setup;
 use crate::i18n;
 use crate::storage;
-use crate::ui::components::{HomePage, Notification, TermsPage, WelcomePage};
+use crate::ui::components::{HomePage, Notification, Notifications, TermsPage, WelcomePage};
 
 #[component]
 pub fn App() -> Element {
@@ -40,5 +40,7 @@ pub fn App() -> Element {
             Setup::Terms => rsx! { TermsPage {} },
             Setup::Complete => rsx! { HomePage {} },
         }
+
+        Notifications { }
     }
 }

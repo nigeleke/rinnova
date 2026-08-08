@@ -1,25 +1,11 @@
+mod theme;
+
+pub use theme::ConfirmationTheme;
+
+//-------------------------------------
 use dioxus::prelude::*;
 
 use crate::ui::components::{CancelButton, Modal, OkButton};
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum ConfirmationTheme {
-    Info,
-    Warning,
-    Destructive,
-    Error,
-}
-
-impl ConfirmationTheme {
-    fn class(self) -> &'static str {
-        match self {
-            Self::Info => "confirmation-info",
-            Self::Warning => "confirmation-warning",
-            Self::Destructive => "confirmation-destructive",
-            Self::Error => "confirmation-error",
-        }
-    }
-}
 
 #[component]
 pub fn Confirmation(
@@ -33,7 +19,7 @@ pub fn Confirmation(
         Modal {
             on_close: on_cancel,
             div {
-                class: "confirmation {theme.class()}",
+                class: "confirmation {theme}",
 
                 p { "{message}" }
 

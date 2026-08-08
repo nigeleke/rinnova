@@ -3,7 +3,7 @@ use dioxus_i18n::tid;
 
 #[component]
 pub fn OkButton(
-    onclick: EventHandler<MouseEvent>,
+    onclick: Option<EventHandler<MouseEvent>>,
     #[props(extends = button)] attributes: Vec<Attribute>,
 ) -> Element {
     rsx! {
@@ -11,7 +11,7 @@ pub fn OkButton(
             class: "ok-button",
             aria_label: tid!("ok-button.aria-label"),
             r#type: "submit",
-            onclick,
+            onclick: move |event| onclick.iter().for_each(|handler| handler.call(event.clone())),
             ..attributes,
             {tid!("ok-button.text")}
         }

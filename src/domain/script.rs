@@ -7,10 +7,10 @@ pub use item::ScriptItem;
 // ------------------------------------
 use std::collections::HashSet;
 
-use jiff::civil::Date;
+use dioxus_i18n::tid;
 use serde::{Deserialize, Serialize};
 
-use crate::domain::{LogbookError, MedicationId, SupplyCount};
+use crate::domain::{Date, LogbookError, MedicationId, SupplyCount};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Script {
@@ -26,9 +26,18 @@ impl Script {
         expires_on: Date,
         items: &[ScriptItem],
     ) -> Result<Self, LogbookError> {
+        let id = ScriptId::new();
+        Self::try_new_with_id(id, issued_on, expires_on, items)
+    }
+
+    pub fn try_new_with_id(
+        id: ScriptId,
+        issued_on: Date,
+        expires_on: Date,
+        items: &[ScriptItem],
+    ) -> Result<Self, LogbookError> {
         Self::validate(issued_on, expires_on, items)?;
 
-        let id = ScriptId::new();
         let items = HashSet::from_iter(items.iter().copied());
 
         let script = Self {
@@ -80,11 +89,11 @@ impl Script {
     pub fn items(&self) -> impl Iterator<Item = ScriptItem> + '_ {
         self.items.iter().copied()
     }
+}
 
-    pub fn authorised_supplies(&self, medication_id: MedicationId) -> SupplyCount {
-        self.items()
-            .filter_map(|i| (i.medication_id() == medication_id).then_some(i.authorised_repeats()))
-            .sum::<SupplyCount>()
-            + SupplyCount::ONE
+impl std::fmt::Display for Script {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let description = tid!("script-description", issued_on: self.issued_on.to_string(), expires_on: self.expires_on.to_string(), item_count: self.items.len());
+        description.fmt(f)
     }
 }

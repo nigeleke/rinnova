@@ -5,10 +5,9 @@ pub use count::SupplyCount;
 pub use id::SupplyId;
 
 // ------------------------------------
-use jiff::civil::Date;
 use serde::{Deserialize, Serialize};
 
-use crate::domain::{MedicationId, ScriptId};
+use crate::domain::{Date, MedicationId, ScriptId};
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Supply {

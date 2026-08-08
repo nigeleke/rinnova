@@ -1,2 +1,73 @@
 .scripts {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    block-size: 100%;
+    min-block-size: 0;
+    gap: 1rem;
+}
+
+.scripts__list {
+    list-style: none;
+    min-block-size: 0;
+    max-block-size: 100%;
+    overflow: auto;
+}
+
+.scripts__list-item {
+    padding: 0.25rem;
+    border: 1px solid transparent color-mix(in srgb, var(--panel-background-color) 90%, black);
+    span {
+        min-block-size: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.scripts__list-item.selected {
+    border: 1px solid color-mix(in srgb, var(--panel-background-color) 70%, black);;
+}
+
+.scripts__medications__list {
+    padding: 0;
+    padding-inline-start: 2rem;
+    list-style: none;
+}
+
+.scripts__medications__list-item {
+    font-size: small;
+}
+
+.scripts__medications__list-item + .scripts__medications__list-item {
+    margin-block-start: 0;
+}
+
+.scripts__commands {
+    inline-size: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.scripts__form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem 1rem;
+    align-items: stretch;
+    padding: 1rem;
+}
+
+.scripts__script-items__list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) min-content;
+    gap: 0.5rem;
+    box-sizing: border-box;
+}
+
+.scripts__script-items__list-item {
+    display: contents;
+    input {
+        justify-self: end;
+        inline-size: 5ch;
+    }
 }

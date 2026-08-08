@@ -1,0 +1,139 @@
+use crate::domain::{
+    Date, Logbook, MedicationSnapshot, MedicationStatus, ScriptItemSnapshot, ScriptItemStatus,
+    ScriptSnapshot, ScriptStatus, SupplyCount,
+};
+
+pub struct LogbookSnapshot {
+    as_of: Date,
+    medications: Vec<MedicationSnapshot>,
+    scripts: Vec<ScriptSnapshot>,
+    // reminders: Vec<Reminder>,
+}
+
+impl LogbookSnapshot {
+    pub fn from(logbook: &Logbook, as_of: Date) -> Self {
+        const DAYS_WARNING: i64 = 14;
+
+        let (past_scripts, current_scripts, _future_scripts) = logbook.scripts().iter().fold(
+            (Vec::new(), Vec::new(), Vec::new()),
+            |(mut past, mut current, mut future), script| {
+                if as_of < script.issued_on() {
+                    future.push(script);
+                } else if as_of > script.expires_on() {
+                    past.push(script);
+                } else {
+                    current.push(script);
+                }
+                (past, current, future)
+            },
+        );
+
+        let (supplies_dispensed, _future_supplies): (Vec<_>, Vec<_>) = logbook
+            .supplies()
+            .iter()
+            .partition(|s| s.issued_on() <= as_of);
+
+        let scripts = current_scripts
+            .into_iter()
+            .map(|script| {
+                let script_id = script.id();
+                let items = script
+                    .items()
+                    .filter_map(|item| {
+                        let medication_id = item.medication_id();
+                        logbook.medication(medication_id).map(|medication| {
+                            let dispensed_count = supplies_dispensed
+                                .iter()
+                                .filter(|s| {
+                                    s.script_id() == script_id && s.medication_id() == medication_id
+                                })
+                                .count();
+                            let dispensed_count = SupplyCount::from(dispensed_count);
+                            let remaining_supplies =
+                                item.authorised_repeats() + SupplyCount::ONE - dispensed_count;
+                            let status = match remaining_supplies {
+                                SupplyCount::ZERO => ScriptItemStatus::NoRepeats,
+                                SupplyCount::ONE => ScriptItemStatus::LastRepeat,
+                                _ => ScriptItemStatus::SupplyOk,
+                            };
+                            ScriptItemSnapshot::new(medication.clone(), remaining_supplies, status)
+                        })
+                    })
+                    .collect::<Vec<_>>();
+                let exhausted = items
+                    .iter()
+                    .all(|i| i.remaining_supplies() == SupplyCount::ZERO);
+                let due_to_expire = !script.is_valid_on(as_of.plus_days(DAYS_WARNING));
+                let status = if exhausted {
+                    ScriptStatus::ScriptExhausted
+                } else if due_to_expire {
+                    ScriptStatus::ScriptDueToExpire
+                } else {
+                    ScriptStatus::ScriptOk
+                };
+                ScriptSnapshot::new(script.clone(), status, &items)
+            })
+            .chain(past_scripts.into_iter().map(|script| {
+                let items = script
+                    .items()
+                    .filter_map(|item| {
+                        let medication_id = item.medication_id();
+                        logbook.medication(medication_id).map(|medication| {
+                            ScriptItemSnapshot::new(
+                                medication.clone(),
+                                SupplyCount::ZERO,
+                                ScriptItemStatus::NoRepeats,
+                            )
+                        })
+                    })
+                    .collect::<Vec<_>>();
+                ScriptSnapshot::new(script.clone(), ScriptStatus::ScriptNotCurrent, &items)
+            }))
+            .collect::<Vec<_>>();
+
+        let medications = logbook
+            .medications()
+            .iter()
+            .map(|medication| {
+                let medication_id = medication.id();
+                let remaining_supplies = scripts
+                    .iter()
+                    .map(|s| {
+                        s.items()
+                            .iter()
+                            .filter(|i| i.medication().id() == medication_id)
+                            .map(|i| i.remaining_supplies())
+                            .sum()
+                    })
+                    .sum();
+                let status = match remaining_supplies {
+                    SupplyCount::ZERO => MedicationStatus::NoRepeats,
+                    SupplyCount::ONE => MedicationStatus::LastRepeat,
+                    _ => MedicationStatus::Ok,
+                };
+                MedicationSnapshot::new(medication.clone(), status, remaining_supplies)
+            })
+            .collect::<Vec<_>>();
+
+        Self {
+            as_of,
+            medications,
+            scripts,
+        }
+    }
+
+    pub fn as_of(&self) -> Date {
+        self.as_of
+    }
+
+    pub fn medications(&self) -> &[MedicationSnapshot] {
+        &self.medications
+    }
+
+    pub fn scripts(&self) -> &[ScriptSnapshot] {
+        &self.scripts
+    }
+}
+
+#[cfg(test)]
+mod tests;

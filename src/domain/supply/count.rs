@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(
+    Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize,
+)]
 pub struct SupplyCount(usize);
 
 impl SupplyCount {
@@ -22,6 +24,12 @@ impl std::ops::Add for SupplyCount {
     }
 }
 
+impl std::ops::AddAssign for SupplyCount {
+    fn add_assign(&mut self, rhs: Self) {
+        self.0 += rhs.0
+    }
+}
+
 impl std::ops::Sub for SupplyCount {
     type Output = SupplyCount;
 
@@ -33,5 +41,11 @@ impl std::ops::Sub for SupplyCount {
 impl std::iter::Sum for SupplyCount {
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
         Self(iter.map(|i| i.0).sum())
+    }
+}
+
+impl std::fmt::Display for SupplyCount {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
     }
 }

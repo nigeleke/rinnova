@@ -16,6 +16,10 @@ pub struct Medication {
 impl Medication {
     pub fn new(name: &str, strength: &str, notes: &str) -> Self {
         let id = MedicationId::new();
+        Self::with_id(id, name, strength, notes)
+    }
+
+    pub fn with_id(id: MedicationId, name: &str, strength: &str, notes: &str) -> Self {
         let name = name.trim().to_owned();
         let strength = strength.trim().to_owned();
         let notes = notes.to_owned();

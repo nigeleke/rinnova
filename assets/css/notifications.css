@@ -1,0 +1,49 @@
+.notifications {
+    position: fixed;
+    inset-block-end: 1rem;
+    inset-inline-start: 1rem;
+    z-index: 999;
+    pointer-events: none;
+}
+
+.notifications__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.notifications__list-item {
+    inline-size: min(24rem, calc(100vw - 2rem));
+
+    padding: 1rem;
+
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgb(0 0 0 / 0.2);
+
+    pointer-events: auto;
+
+    animation: notifications__list-item__enter 250ms ease-out;
+
+    &.notification-error {
+        background-color: red;
+    }
+    &.notification-warning {
+        background-color: orange;
+    }
+}
+
+@keyframes notifications__list-item__enter {
+    from {
+        opacity: 0;
+        transform: translateY(2rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -1,20 +1,78 @@
+mod draft_script;
+mod draft_script_item;
+
+use draft_script::DraftScript;
+use draft_script_item::DraftScriptItem;
+
+// --------------------------------------
 use dioxus::prelude::*;
 use dioxus_i18n::tid;
 
-use crate::domain::{Logbook, Script, ScriptId};
-use crate::ui::components::{AddButton, DeleteButton, EditButton};
+use crate::domain::{Logbook, Medication, Script, ScriptId, SupplyCount};
+use crate::ui::components::{
+    AddButton, CancelButton, Confirmation, ConfirmationTheme, DateInput, DeleteButton, EditButton,
+    Modal, Notification, OkButton,
+};
 
 #[component]
 pub fn Scripts() -> Element {
+    let mut logbook = use_context::<Signal<Logbook>>();
+    let default_draft_script = move || DraftScript::new(logbook.read().medications());
+
     let selected_script_id = use_signal(|| None::<ScriptId>);
     provide_context(selected_script_id);
+
+    let mut draft = use_signal(|| None::<DraftScript>);
+    let mut delete_confirmation = use_signal(|| None::<ScriptId>);
 
     rsx! {
         document::Stylesheet { href: asset!("/assets/css/scripts.css")}
         div {
             class: "scripts",
             ScriptsList { }
-            ScriptsCommands { }
+            ScriptsCommands {
+                on_add: move || draft.set(Some(default_draft_script())),
+                on_edit: move |id| draft.set(logbook.read().script(id).map(|script| default_draft_script().using_script(script))),
+                on_delete: move |id| delete_confirmation.set(Some(id)),
+            }
+
+            if let Some(value) = draft() {
+                Modal {
+                    on_close: move |_| draft.set(None),
+                    ScriptsForm {
+                        value,
+                        on_submit: move |s: DraftScript| {
+                            let id = s.id;
+                            if let Err(error) = s.try_into_script().and_then(|script| {
+                                match id {
+                                    Some(_) => logbook.write().try_update_script(script),
+                                    None => logbook.write().try_add_script(script),
+                                }
+                            }) {
+                                Notification::notify(error);
+                            }
+                            draft.set(None);
+                        },
+                        on_cancel: move |_| draft.set(None),
+                    }
+                }
+            }
+
+            if let Some(id) = *delete_confirmation.read()
+                && let Some(script) = logbook.read().script(id) {
+                Confirmation {
+                    theme: ConfirmationTheme::Destructive,
+                    message: tid!("delete-script", script: script.to_string()),
+                    on_ok: move |_| {
+                        if let Err(error) = logbook.write().try_remove_script(id) {
+                            Notification::notify(error);
+                        }
+                        draft.set(None);
+                        delete_confirmation.set(None);
+                    },
+                    on_cancel: move |_| delete_confirmation.set(None),
+                }
+            }
         }
 
     }
@@ -24,21 +82,22 @@ pub fn Scripts() -> Element {
 fn ScriptsList() -> Element {
     let logbook = use_context::<Signal<Logbook>>();
 
-    let mut scripts = logbook.read().scripts().iter().cloned().collect::<Vec<_>>();
+    let mut scripts = logbook.read().scripts().to_vec();
     scripts.sort_by_key(|s| s.issued_on());
 
     let zero_scripts = scripts.is_empty();
 
     rsx! {
-        div {
-           class: "scripts__list",
-           for script in scripts {
-               ScriptsListItem { script }
-           }
-       }
        if zero_scripts {
            p { {tid!("zero-scripts-para-01")} }
            p { {tid!("zero-scripts-para-02")} }
+       } else {
+           ul {
+              class: "scripts__list",
+              for script in scripts {
+                  ScriptsListItem { script }
+              }
+          }
        }
     }
 }
@@ -49,32 +108,190 @@ fn ScriptsListItem(script: Script) -> Element {
     let mut selected_script_id = use_context::<Signal<Option<ScriptId>>>();
 
     rsx! {
-        div {
+        li {
             class: "scripts__list-item",
+            class: if *selected_script_id.read() == Some(script_id) { "selected" },
             key: "{script_id}",
             onclick: move |_| selected_script_id.set(Some(script_id)),
-            span { "{script.issued_on()} / {script.expires_on()}" }
+            span { {tid!("script-description",
+                issued_on: script.issued_on().to_string(),
+                expires_on: script.expires_on().to_string(),
+                item_count: script.items().count())} }
+            MedicationsList { script }
         }
 
     }
 }
 
 #[component]
-fn ScriptsCommands() -> Element {
+fn MedicationsList(script: Script) -> Element {
+    let logbook = use_context::<Signal<Logbook>>();
+    let medications = script.items().filter_map(|i| {
+        let medication_id = i.medication_id();
+        logbook.read().medication(medication_id).cloned()
+    });
+
+    rsx! {
+        ul {
+            class: "scripts__medications__list",
+            for medication in medications {
+                MedicationsListItem { medication }
+            }
+        }
+    }
+}
+
+#[component]
+fn MedicationsListItem(medication: Medication) -> Element {
+    rsx! {
+        li {
+            class: "scripts__medications__list-item",
+            "{medication}"
+        }
+    }
+}
+
+#[component]
+fn ScriptsCommands(
+    on_add: EventHandler<()>,
+    on_edit: EventHandler<ScriptId>,
+    on_delete: EventHandler<ScriptId>,
+) -> Element {
+    let id = use_context::<Signal<Option<ScriptId>>>();
+
     rsx! {
         div {
             class: "scripts__commands",
             AddButton {
                 indefinite_object: tid!("script-indefinite"),
-                onclick: move |_| { },
+                onclick: move |_| on_add.call(()),
             }
             EditButton {
                 definite_object: tid!("script-definite"),
-                onclick: move |_| { },
+                disabled: id.read().is_none(),
+                onclick: move |_| if let Some(id) = *id.read() { on_edit.call(id) },
             }
             DeleteButton {
                 definite_object: tid!("script-definite"),
-                onclick: move |_| { },
+                disabled: id.read().is_none(),
+                onclick: move |_| if let Some(id) = *id.read() { on_delete.call(id) },
+            }
+        }
+    }
+}
+
+#[component]
+fn ScriptsForm(
+    value: DraftScript,
+    on_submit: EventHandler<DraftScript>,
+    on_cancel: EventHandler<()>,
+) -> Element {
+    let mut draft = use_signal(|| value);
+    provide_context(draft);
+
+    let mut can_submit = use_signal(|| false);
+    use_effect(move || can_submit.set(draft.read().is_valid()));
+
+    rsx! {
+        form {
+            class: "scripts__form",
+            onsubmit: move |event| {
+                event.prevent_default();
+                if *can_submit.read() {
+                    on_submit.call(draft.read().clone())
+                }
+            },
+
+            DateInput {
+                id: "issued-on",
+                label: tid!("scripts-form-issued-on-label"),
+                value: draft.read().issued_on,
+                on_change: move |date| draft.write().issued_on = date,
+            }
+
+            DateInput {
+                id: "expires-on",
+                label: tid!("scripts-form-expires-on-label"),
+                value: draft.read().expires_on,
+                on_change: move |date| draft.write().expires_on = date,
+            }
+
+            ScriptItemsList { }
+
+            div {
+                class: "scripts__commands",
+                CancelButton {
+                    onclick: move |_| on_cancel.call(())
+                }
+
+                OkButton {
+                    disabled: !*can_submit.read(),
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn ScriptItemsList() -> Element {
+    let mut draft = use_context::<Signal<DraftScript>>();
+
+    rsx! {
+        ul {
+            class: "scripts__script-items__list",
+            span { {tid!("scripts-form-medication-heading")} }
+            span { {tid!("scripts-form-repeats-heading")} }
+            for item in draft().items {
+                ScriptItemsListItem {
+                    item,
+                    on_change: move |item| draft.write().update_item(item),
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn ScriptItemsListItem(item: DraftScriptItem, on_change: EventHandler<DraftScriptItem>) -> Element {
+    let logbook = use_context::<Signal<Logbook>>();
+
+    let is_selected = item.selected;
+    let repeats = item.repeats;
+
+    let medication_id = item.medication_id;
+    let medication = logbook
+        .read()
+        .medication(medication_id)
+        .map_or_else(String::default, |m| m.to_string());
+
+    rsx! {
+        li {
+            class: "scripts__script-items__list-item",
+
+            label {
+                class: "scripts__script-items__medication",
+                input {
+                    r#type: "checkbox",
+                    checked: is_selected,
+                    onchange: move |event| {
+                        item.selected = event.checked();
+                        on_change.call(item.clone());
+                    }
+                }
+                "{medication}"
+            }
+
+            input {
+                id: "{medication_id}",
+                r#type: "number",
+                min: "0",
+                value: "{repeats}",
+                onchange: move |event| {
+                    let count = event.value().parse::<usize>().unwrap_or_default();
+                    item.selected = count != 0;
+                    item.repeats = SupplyCount::from(count);
+                    on_change.call(item.clone());
+                },
             }
         }
     }

@@ -15,7 +15,6 @@ use crate::ui::components::{
 #[component]
 pub fn Medications() -> Element {
     let mut logbook = use_context::<Signal<Logbook>>();
-    let mut notifications = use_context::<Signal<Vec<Notification>>>();
 
     let selected_medication_id = use_signal(|| None::<MedicationId>);
     provide_context(selected_medication_id);
@@ -38,10 +37,23 @@ pub fn Medications() -> Element {
                 Modal {
                     on_close: move |_| draft.set(None),
                     MedicationForm {
-                        value: value,
-                        on_submit: move |m| {},
+                        value,
+                        on_submit: move |m: DraftMedication| {
+                            let id = m.id;
+                            if let Err(error) = m
+                                .try_into_medication()
+                                .and_then(|medication| {
+                                    match id {
+                                        Some(_) => logbook.write().try_update_medication(medication),
+                                        None => logbook.write().try_add_medication(medication),
+                                    }
+                                })
+                            {
+                                Notification::notify(error.clone());
+                            }
+                            draft.set(None);
+                        },
                         on_cancel: move |_| draft.set(None),
-                        on_close: move || draft.set(None),
                     }
                 }
             }
@@ -49,18 +61,16 @@ pub fn Medications() -> Element {
             if let Some(id) = *delete_confirmation.read()
                 && let Some(medication) = logbook.read().medication(id) {
                 Confirmation {
-                    theme: ConfirmationTheme::Error,
+                    theme: ConfirmationTheme::Destructive,
                     message: tid!("delete-medication", medication: medication.to_string()),
                     on_ok: move |_| {
                         if let Err(error) = logbook.write().try_remove_medication(id) {
-                            let error = tid!(&error.to_string());
-                            notifications.push(Notification::error(&error))
+                            Notification::notify(error);
                         }
                         draft.set(None);
                         delete_confirmation.set(None);
                     },
                     on_cancel: move |_| delete_confirmation.set(None),
-
                 }
             }
         }
@@ -71,24 +81,20 @@ pub fn Medications() -> Element {
 fn MedicationsList() -> Element {
     let logbook = use_context::<Signal<Logbook>>();
 
-    let medications = logbook
-        .read()
-        .medications()
-        .iter()
-        .cloned()
-        .collect::<Vec<_>>();
+    let medications = logbook.read().medications().to_vec();
     let zero_medications = medications.is_empty();
 
     rsx! {
-        ul {
-            class: "medications__list",
-            for medication in medications {
-                MedicationsListItem { medication }
-            }
-        }
         if zero_medications {
             p { {tid!("zero-medications-para-01")} }
             p { {tid!("zero-medications-para-02")} }
+        } else {
+            ul {
+                class: "medications__list",
+                for medication in medications {
+                    MedicationsListItem { medication }
+                }
+            }
         }
     }
 }
@@ -127,12 +133,12 @@ fn MedicationsCommands(
             EditButton {
                 definite_object: tid!("medication-definite"),
                 disabled: id.read().is_none(),
-                onclick: move |_| id.read().iter().for_each(|id| on_edit.call(*id)),
+                onclick: move |_| if let Some(id) = *id.read() { on_edit.call(id); },
             }
             DeleteButton {
                 definite_object: tid!("medication-definite"),
                 disabled: id.read().is_none(),
-                onclick: move |_| id.read().iter().for_each(|id| on_delete.call(*id)),
+                onclick: move |_| if let Some(id) = *id.read() { on_delete.call(id); },
             }
         }
     }
@@ -143,7 +149,6 @@ fn MedicationForm(
     value: DraftMedication,
     on_submit: EventHandler<DraftMedication>,
     on_cancel: EventHandler<()>,
-    on_close: EventHandler<()>,
 ) -> Element {
     let mut draft = use_signal(|| value);
 
@@ -186,13 +191,13 @@ fn MedicationForm(
             }
 
             div {
+                class: "medications__commands",
                 CancelButton {
                     onclick: move |_| on_cancel.call(())
                 }
 
                 OkButton {
                     disabled: !*can_submit.read(),
-                    onclick: move |_| on_submit.call(draft.read().cloned())
                 }
             }
         }

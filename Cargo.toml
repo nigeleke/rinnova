@@ -9,6 +9,7 @@ delegate = "0.13.5"
 dioxus = { version = "0.7.10", features = [] }
 dioxus-i18n = "0.5.1"
 dioxus-sdk = { version = "0.7.0", features = ["storage"] }
+gloo-timers = { version = "0.4.0", features = ["futures"] }
 jiff = { version = "0.2.34", features = ["js", "serde"] }
 rexie = "0.6.2"
 serde = { version = "1.0.229", features = ["derive"] }
