@@ -60,3 +60,17 @@
 .home-page__panel.medications-parent {
     --panel-background-color: #FFE4E1;
 }
+
+.home-page__version {
+    align-self: end;
+    justify-self: center;
+    justify-items: center;
+    max-inline-size: 100%;
+    min-inline-size: 0;
+    img {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-width: 100%;
+    }
+}

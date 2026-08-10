@@ -1,5 +1,6 @@
 # -------------------------------------
 # General text
+version = Version {$version}
 date = {$day}/{$month}/{$year}
 medication-definite = the medication
 medication-indefinite = a medication

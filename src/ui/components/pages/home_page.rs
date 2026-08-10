@@ -14,6 +14,7 @@ pub fn HomePage() -> Element {
             Panel { view: View::Refills, Refills {} }
             Panel { view: View::Scripts, Scripts {} }
             Panel { view: View::Medications, Medications {} }
+            Version { }
         }
     }
 }
@@ -40,6 +41,23 @@ fn Panel(view: View, children: Element) -> Element {
 
             if show_children {
                 {children}
+            }
+        }
+    }
+}
+
+#[component]
+fn Version() -> Element {
+    let model = use_context::<Signal<Model>>();
+    let current_view = model.read().view();
+    let version = env!("CARGO_PKG_VERSION");
+
+    rsx! {
+        if current_view == View::HomePage {
+            div {
+                class: "home-page__version",
+                img { src: asset!("/assets/images/rinnova_logo.jpg")}
+                div { {tid!("version", version: version)} }
             }
         }
     }

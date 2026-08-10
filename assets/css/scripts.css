@@ -7,7 +7,6 @@
 }
 
 .scripts__list {
-    list-style: none;
     min-block-size: 0;
     max-block-size: 100%;
     overflow: auto;
@@ -40,7 +39,6 @@
     padding: 0;
     padding-inline-start: 2rem;
     padding-inline-end: 0.5rem;
-    list-style: none;
 }
 
 .scripts__medications__list-item {

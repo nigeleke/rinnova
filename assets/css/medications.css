@@ -7,7 +7,6 @@
 }
 
 .medications__list {
-    list-style: none;
     min-block-size: 0;
     overflow: auto;
 }

@@ -15,14 +15,9 @@
 }
 
 .refills__eligible-supplies__list {
-    list-style: none;
     min-block-size: 0;
     max-block-size: 100%;
     overflow: auto;
-}
-
-.refills__eligible-medications__list {
-    list-style: none;
 }
 
 .refills__eligible-medications__list-item {
@@ -44,7 +39,6 @@
 }
 
 .refills__previous-supplies__list {
-    list-style: none;
     min-block-size: 0;
     max-block-size: 100%;
     overflow: auto;
