@@ -44,7 +44,7 @@ impl DraftRefill {
         }
     }
 
-    pub fn to_supplies(&self) -> impl Iterator<Item = Supply> {
+    pub fn as_supplies(&self) -> impl Iterator<Item = Supply> {
         let issued_on = self.issued_on;
 
         self.selected_items().map(move |item| {
