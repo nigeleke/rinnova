@@ -5,7 +5,7 @@ use draft_refill::DraftRefill;
 use draft_refill_item::DraftRefillItem;
 
 // ------------------------------------
-use dioxus::{logger, prelude::*};
+use dioxus::prelude::*;
 use dioxus_i18n::tid;
 
 use crate::domain::{Logbook, LogbookSnapshot, ScriptId, Supply};
@@ -163,7 +163,7 @@ fn EligibleSuppliesCommands(on_submit: EventHandler<Vec<Supply>>) -> Element {
             aria_label: tid!("dispensed-button.aria-label"),
             disabled: draft.read().selected_items().count() == 0,
             onclick: move |_| {
-                let supplies = draft.read().into_supplies().collect::<Vec<_>>();
+                let supplies = draft.read().to_supplies().collect::<Vec<_>>();
                 on_submit.call(supplies);
             },
             {tid!("dispensed-button.text")}
