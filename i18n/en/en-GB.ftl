@@ -173,3 +173,10 @@ dispensed-button =
     .hint = Dispend selected medications
     .aria-label = Dispense selected medications
 refill-form-issued-on-label = Issued on:
+
+# -------------------------------------
+# Reminders panel
+reminders-subtitle =
+    .no-repeats = No repeats
+    .last-repeats = Last repeat
+    .script-expiring = Script expiring
