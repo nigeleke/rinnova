@@ -1,18 +1,18 @@
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ConfirmationTheme {
-    Info,
-    Warning,
+    _Info,
+    _Warning,
     Destructive,
-    Error,
+    _Error,
 }
 
 impl std::fmt::Display for ConfirmationTheme {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Info => "confirmation-info",
-            Self::Warning => "confirmation-warning",
+            Self::_Info => "confirmation-info",
+            Self::_Warning => "confirmation-warning",
             Self::Destructive => "confirmation-destructive",
-            Self::Error => "confirmation-error",
+            Self::_Error => "confirmation-error",
         }
         .fmt(f)
     }

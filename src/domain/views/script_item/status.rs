@@ -1,6 +1,6 @@
 use crate::domain::Health;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ScriptItemStatus {
     SupplyOk,
     LastRepeat,
@@ -14,5 +14,16 @@ impl ScriptItemStatus {
             Self::LastRepeat => Health::Attention,
             Self::NoRepeats => Health::Critical,
         }
+    }
+}
+
+impl std::fmt::Display for ScriptItemStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let status = match self {
+            ScriptItemStatus::SupplyOk => "ok",
+            ScriptItemStatus::LastRepeat => "last-repeat",
+            ScriptItemStatus::NoRepeats => "no-repeats",
+        };
+        write!(f, "script-item-status.{status}")
     }
 }

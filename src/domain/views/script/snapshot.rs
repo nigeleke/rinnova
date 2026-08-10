@@ -1,5 +1,6 @@
-use crate::domain::{Health, Script, ScriptItemSnapshot, ScriptStatus};
+use crate::domain::{Date, Health, Script, ScriptId, ScriptItemSnapshot, ScriptStatus};
 
+#[derive(Clone, PartialEq, Eq)]
 pub struct ScriptSnapshot {
     script: Script,
     status: ScriptStatus,
@@ -17,6 +18,22 @@ impl ScriptSnapshot {
 
     pub fn script(&self) -> &Script {
         &self.script
+    }
+
+    pub fn id(&self) -> ScriptId {
+        self.script.id()
+    }
+
+    pub fn issued_on(&self) -> Date {
+        self.script.issued_on()
+    }
+
+    pub fn expires_on(&self) -> Date {
+        self.script.expires_on()
+    }
+
+    pub fn is_valid(&self, as_of: Date) -> bool {
+        self.issued_on() <= as_of && as_of <= self.expires_on()
     }
 
     pub fn status(&self) -> ScriptStatus {

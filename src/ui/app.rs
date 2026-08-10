@@ -16,11 +16,11 @@ pub fn App() -> Element {
     let logbook = storage::use_logbook();
     provide_context(logbook);
 
-    let mut logbook_snapshot = use_signal(|| LogbookSnapshot::default());
+    let mut logbook_snapshot = use_signal(LogbookSnapshot::default);
     provide_context(ReadSignal::from(logbook_snapshot));
 
     use_effect(move || {
-        let snapshot = LogbookSnapshot::from(&*logbook.read(), Date::today());
+        let snapshot = LogbookSnapshot::from(&logbook.read(), Date::today());
         logbook_snapshot.set(snapshot);
     });
 

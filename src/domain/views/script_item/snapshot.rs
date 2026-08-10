@@ -1,6 +1,6 @@
-use crate::domain::{Health, Medication, ScriptItemStatus, SupplyCount};
+use crate::domain::{Health, Medication, MedicationId, ScriptItemStatus, SupplyCount};
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct ScriptItemSnapshot {
     medication: Medication,
     remaining_supplies: SupplyCount,
@@ -22,6 +22,10 @@ impl ScriptItemSnapshot {
 
     pub fn medication(&self) -> &Medication {
         &self.medication
+    }
+
+    pub fn medication_id(&self) -> MedicationId {
+        self.medication.id()
     }
 
     pub fn remaining_supplies(&self) -> SupplyCount {

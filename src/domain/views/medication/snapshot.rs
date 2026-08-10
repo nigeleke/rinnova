@@ -28,6 +28,14 @@ impl MedicationSnapshot {
         self.medication.id()
     }
 
+    pub fn name(&self) -> &str {
+        self.medication.name()
+    }
+
+    pub fn strength(&self) -> &str {
+        self.medication.strength()
+    }
+
     pub fn status(&self) -> MedicationStatus {
         self.status
     }
@@ -38,11 +46,5 @@ impl MedicationSnapshot {
 
     pub fn remaining_supplies(&self) -> SupplyCount {
         self.remaining_supplies
-    }
-}
-
-impl std::fmt::Display for MedicationSnapshot {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.medication().fmt(f)
     }
 }

@@ -11,9 +11,9 @@ pub struct DraftScript {
 }
 
 impl DraftScript {
-    pub fn new(medications: &[Medication]) -> Self {
-        let mut medications = medications.to_vec();
-        medications.sort_by(|a, b| a.to_string().cmp(&b.to_string()));
+    pub fn new(medications: impl IntoIterator<Item = Medication>) -> Self {
+        let mut medications = medications.into_iter().collect::<Vec<_>>();
+        medications.sort_by(|a, b| a.name().cmp(b.name()));
 
         let id = None;
         let issued_on = Date::today();

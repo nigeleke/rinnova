@@ -22,6 +22,14 @@
         text-overflow: ellipsis;
         white-space: nowrap;
     }
+
+    &.health-attention {
+        background-color: var(--health-attention-background-color);
+    }
+
+    &.health-critical {
+        background-color: var(--health-critical-background-color);
+    }
 }
 
 .scripts__list-item.selected {
@@ -31,11 +39,22 @@
 .scripts__medications__list {
     padding: 0;
     padding-inline-start: 2rem;
+    padding-inline-end: 0.5rem;
     list-style: none;
 }
 
 .scripts__medications__list-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
     font-size: small;
+
+    &.health-attention {
+        background-color: var(--health-attention-background-color);
+    }
+
+    &.health-critical {
+        background-color: var(--health-critical-background-color);
+    }
 }
 
 .scripts__medications__list-item + .scripts__medications__list-item {

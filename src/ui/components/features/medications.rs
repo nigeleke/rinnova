@@ -62,7 +62,10 @@ pub fn Medications() -> Element {
                 && let Some(medication) = logbook.read().medication(id) {
                 Confirmation {
                     theme: ConfirmationTheme::Destructive,
-                    message: tid!("delete-medication", medication: medication.to_string()),
+                    message: tid!("delete-medication",
+                        medication: tid!("medication-description",
+                            name: medication.name(),
+                            strength: medication.strength())),
                     on_ok: move |_| {
                         if let Err(error) = logbook.write().try_remove_medication(id) {
                             Notification::notify(error);
@@ -80,8 +83,9 @@ pub fn Medications() -> Element {
 #[component]
 fn MedicationsList() -> Element {
     let snapshot = use_context::<ReadSignal<LogbookSnapshot>>();
+    let snapshot = snapshot.read();
 
-    let medications = snapshot.read().medications().to_vec();
+    let medications = snapshot.medications().cloned().collect::<Vec<_>>();
     let zero_medications = medications.is_empty();
 
     rsx! {
@@ -113,7 +117,7 @@ fn MedicationsListItem(medication: MedicationSnapshot) -> Element {
             class: if *selected_medication_id.read() == Some(medication_id) { "selected" },
             key: "{medication_id}",
             onclick: move |_| selected_medication_id.set(Some(medication_id)),
-            span { "{medication}" }
+            span { {tid!("medication-description", name: medication.name(), strength: medication.strength())} }
             span { {tid!(&status.to_string())} }
         }
     }

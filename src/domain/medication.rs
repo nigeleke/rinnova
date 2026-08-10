@@ -5,7 +5,7 @@ pub use id::MedicationId;
 // ------------------------------------
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Medication {
     id: MedicationId,
     name: String,
@@ -62,15 +62,5 @@ impl Medication {
     pub fn equivalent_to(&self, other: &Self) -> bool {
         self.name.eq_ignore_ascii_case(&other.name)
             && self.strength.eq_ignore_ascii_case(&other.strength)
-    }
-}
-
-impl std::fmt::Display for Medication {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.strength.is_empty() {
-            write!(f, "{}", self.name)
-        } else {
-            write!(f, "{} ({})", self.name, self.strength)
-        }
     }
 }

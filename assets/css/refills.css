@@ -1,6 +1,6 @@
 .refills {
     display: grid;
-    grid-template-rows: 2fr 1fr;
+    grid-template-rows: 3fr 2fr;
     block-size: 100%;
     min-block-size: 0;
     gap: 1rem;
@@ -42,4 +42,18 @@
 
 .refills__previous-supplies {
     border-top: 2px solid var(--background-color);
+    padding-block: 1rem;
+    min-block-size: 0;
+}
+
+.refills__previous-supplies__list {
+    list-style: none;
+    min-block-size: 0;
+    max-block-size: 100%;
+    overflow: auto;
+}
+
+.refills__previous-supplies__list-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
 }

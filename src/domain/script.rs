@@ -10,7 +10,7 @@ use std::collections::HashSet;
 use dioxus_i18n::tid;
 use serde::{Deserialize, Serialize};
 
-use crate::domain::{Date, LogbookError, MedicationId, SupplyCount};
+use crate::domain::{Date, LogbookError};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Script {

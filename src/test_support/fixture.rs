@@ -52,7 +52,7 @@ impl Fixture {
     }
 
     pub fn has_medication(&self, id: MedicationId) -> bool {
-        self.logbook.medications().iter().any(|m| m.id() == id)
+        self.logbook.medications().any(|m| m.id() == id)
     }
 
     pub fn medication_id(&self, name: &str) -> MedicationId {
@@ -116,7 +116,7 @@ impl Fixture {
     }
 
     pub fn has_script(&self, id: ScriptId) -> bool {
-        self.logbook.scripts().iter().any(|s| s.id() == id)
+        self.logbook.scripts().any(|s| s.id() == id)
     }
 
     pub fn script_id(&self, name: &str) -> ScriptId {
@@ -166,6 +166,6 @@ impl Fixture {
     }
 
     pub fn has_supply(&self, id: SupplyId) -> bool {
-        self.logbook.supplies().iter().any(|s| s.id() == id)
+        self.logbook.supplies().any(|s| s.id() == id)
     }
 }

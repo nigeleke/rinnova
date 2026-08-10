@@ -18,12 +18,12 @@ impl Notification {
         self.id
     }
 
-    pub fn info(message: &str) -> Self {
-        Self::new(NotificationLevel::Info, message)
+    pub fn _info(message: &str) -> Self {
+        Self::new(NotificationLevel::_Info, message)
     }
 
-    pub fn success(message: &str) -> Self {
-        Self::new(NotificationLevel::Success, message)
+    pub fn _success(message: &str) -> Self {
+        Self::new(NotificationLevel::_Success, message)
     }
 
     pub fn warning(message: &str) -> Self {
@@ -45,7 +45,7 @@ impl Notification {
     }
 
     pub fn class(&self) -> &'static str {
-        &self.level.class()
+        self.level.class()
     }
 
     pub fn notify(error: LogbookError) {
@@ -79,11 +79,8 @@ impl Notification {
             }
 
             LogbookError::MedicationUsedInScript(id) => {
-                let name = logbook
-                    .read()
-                    .medication(id)
-                    .map(|m| m.to_string())
-                    .unwrap_or_default();
+                let logbook = logbook.read();
+                let name = logbook.medication_unchecked(id).name();
                 let error = tid!("error.medication-used-in-script", name: name);
                 Notification::warning(&error)
             }

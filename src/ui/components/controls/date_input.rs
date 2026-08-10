@@ -15,7 +15,7 @@ pub fn DateInput(
     let mut is_valid = use_signal(|| true);
 
     use_effect(move || {
-        let result = Date::parse_iso8601_str(&*draft.read());
+        let result = Date::parse_iso8601_str(&draft.read());
         is_valid.set(result.is_ok());
 
         if let Ok(date) = result

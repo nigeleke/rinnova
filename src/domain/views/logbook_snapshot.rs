@@ -15,7 +15,7 @@ impl LogbookSnapshot {
     pub fn from(logbook: &Logbook, as_of: Date) -> Self {
         const DAYS_WARNING: i64 = 14;
 
-        let (past_scripts, current_scripts, _future_scripts) = logbook.scripts().iter().fold(
+        let (past_scripts, current_scripts, _future_scripts) = logbook.scripts().fold(
             (Vec::new(), Vec::new(), Vec::new()),
             |(mut past, mut current, mut future), script| {
                 if as_of < script.issued_on() {
@@ -29,10 +29,8 @@ impl LogbookSnapshot {
             },
         );
 
-        let (supplies_dispensed, _future_supplies): (Vec<_>, Vec<_>) = logbook
-            .supplies()
-            .iter()
-            .partition(|s| s.issued_on() <= as_of);
+        let (supplies_dispensed, _future_supplies): (Vec<_>, Vec<_>) =
+            logbook.supplies().partition(|s| s.issued_on() <= as_of);
 
         let scripts = current_scripts
             .into_iter()
@@ -64,13 +62,14 @@ impl LogbookSnapshot {
                 let exhausted = items
                     .iter()
                     .all(|i| i.remaining_supplies() == SupplyCount::ZERO);
+
                 let due_to_expire = !script.is_valid_on(as_of.plus_days(DAYS_WARNING));
                 let status = if exhausted {
-                    ScriptStatus::ScriptExhausted
+                    ScriptStatus::Exhausted
                 } else if due_to_expire {
-                    ScriptStatus::ScriptDueToExpire
+                    ScriptStatus::DueToExpire
                 } else {
-                    ScriptStatus::ScriptOk
+                    ScriptStatus::Ok
                 };
                 ScriptSnapshot::new(script.clone(), status, &items)
             })
@@ -88,13 +87,12 @@ impl LogbookSnapshot {
                         })
                     })
                     .collect::<Vec<_>>();
-                ScriptSnapshot::new(script.clone(), ScriptStatus::ScriptNotCurrent, &items)
+                ScriptSnapshot::new(script.clone(), ScriptStatus::NotCurrent, &items)
             }))
             .collect::<Vec<_>>();
 
         let medications = logbook
             .medications()
-            .iter()
             .map(|medication| {
                 let medication_id = medication.id();
                 let remaining_supplies = scripts
@@ -127,12 +125,16 @@ impl LogbookSnapshot {
         self.as_of
     }
 
-    pub fn medications(&self) -> &[MedicationSnapshot] {
-        &self.medications
+    pub fn medications(&self) -> impl Iterator<Item = &MedicationSnapshot> {
+        self.medications.iter()
     }
 
-    pub fn scripts(&self) -> &[ScriptSnapshot] {
-        &self.scripts
+    pub fn scripts(&self) -> impl Iterator<Item = &ScriptSnapshot> {
+        self.scripts.iter()
+    }
+
+    pub fn eligible_scripts(&self) -> impl Iterator<Item = &ScriptSnapshot> {
+        self.scripts().filter(|s| s.is_valid(self.as_of))
     }
 }
 

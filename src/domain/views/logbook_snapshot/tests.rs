@@ -9,14 +9,12 @@ fn snapshot(fixture: &Fixture, as_of: Date) -> LogbookSnapshot {
 
 fn medication_snapshot<'a>(s: &'a LogbookSnapshot, name: &str) -> &'a MedicationSnapshot {
     s.medications()
-        .iter()
         .find(|m| m.medication().name() == name)
         .unwrap_or_else(|| panic!("medication snapshot `{name}` missing"))
 }
 
 fn script_snapshot<'a>(s: &'a LogbookSnapshot, script_id: ScriptId) -> &'a ScriptSnapshot {
     s.scripts()
-        .iter()
         .find(|s| s.script().id() == script_id)
         .unwrap_or_else(|| panic!("script snapshot missing"))
 }
@@ -36,8 +34,8 @@ fn empty_logbook_produces_empty_snapshot() {
     let snapshot = snapshot(&fixture, fixture.today());
 
     assert_eq!(snapshot.as_of(), fixture.today());
-    assert!(snapshot.medications().is_empty());
-    assert!(snapshot.scripts().is_empty());
+    assert_eq!(snapshot.medications().count(), 0);
+    assert_eq!(snapshot.scripts().count(), 0);
 }
 
 #[test]
@@ -192,7 +190,7 @@ fn script_issued_after_as_of_is_excluded() {
         .current_script("script01", &[("med01", 2)]);
 
     let snapshot = snapshot(&fixture, fixture.yesterday());
-    assert!(snapshot.scripts().is_empty());
+    assert_eq!(snapshot.scripts().count(), 0);
     assert_eq!(
         medication_snapshot(&snapshot, "med01").health(),
         Health::Critical
@@ -221,7 +219,7 @@ fn multiple_medications_and_scripts_aggregate_correctly() {
     assert_eq!(med02.remaining_supplies(), SupplyCount::ONE);
     assert_eq!(med02.health(), Health::Attention);
 
-    assert_eq!(snapshot.scripts().len(), 2);
+    assert_eq!(snapshot.scripts().count(), 2);
 }
 
 #[test]

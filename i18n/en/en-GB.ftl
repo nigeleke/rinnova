@@ -3,15 +3,16 @@
 date = {$day}/{$month}/{$year}
 medication-definite = the medication
 medication-indefinite = a medication
+medication-description =
+    { NUMBER($strength) ->
+        [0] { $name }
+       *[other] { $name } ({ $strength })
+    }
 refill-definite = the refill
 refill-indefinite = a refill
 script-definite = the prescription
 script-indefinite = a prescription
-script-description =
-    { $item_count ->
-        *[one] from {$issued_on} to {$expires_on}; one item
-        [other] from {$issued_on} to {$expires_on}; {$item_count} items
-    }
+script-description = Date {$issued_on} - {$expires_on}
 
 # -------------------------------------
 # Error messages
@@ -33,9 +34,21 @@ error =
     .medication-not-on-script = Medication {$medication_id} is not on script {$script_id}
     .medication-out-of-refills = Medication {$medication_id} has no refills on script {$script_id}
 
+
 # -------------------------------------
 # Status messages
 medication-status =
+    .ok = Ok
+    .last-repeat = Last repeat
+    .no-repeats = No repeats
+
+script-status =
+    .ok = Ok
+    .due-to-expire = Due to expire
+    .not-current = Expired
+    .exhausted = Exhausted
+
+script-item-status =
     .ok = Ok
     .last-repeat = Last repeat
     .no-repeats = No repeats
@@ -155,12 +168,8 @@ delete-script = Permanently delete {$script}?
 
 # -------------------------------------
 # Refills panel
-remaining-supplies =
-    { $n ->
-        *[one] one remaining
-        [other] {$n} remaining
-    }
 dispensed-button =
-    .text = Dispensed
-    .hint = Record selected medications dispensed
-    .aria-label = Record selected medications dispensed
+    .text = Dispense
+    .hint = Dispend selected medications
+    .aria-label = Dispense selected medications
+refill-form-issued-on-label = Issued on:

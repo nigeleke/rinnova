@@ -8,7 +8,10 @@ use draft_script_item::DraftScriptItem;
 use dioxus::prelude::*;
 use dioxus_i18n::tid;
 
-use crate::domain::{Logbook, Medication, Script, ScriptId, SupplyCount};
+use crate::domain::{
+    Logbook, LogbookSnapshot, ScriptId, ScriptItemSnapshot, ScriptItemStatus, ScriptSnapshot,
+    ScriptStatus, SupplyCount,
+};
 use crate::ui::components::{
     AddButton, CancelButton, Confirmation, ConfirmationTheme, DateInput, DeleteButton, EditButton,
     Modal, Notification, OkButton,
@@ -17,7 +20,7 @@ use crate::ui::components::{
 #[component]
 pub fn Scripts() -> Element {
     let mut logbook = use_context::<Signal<Logbook>>();
-    let default_draft_script = move || DraftScript::new(logbook.read().medications());
+    let default_draft_script = move || DraftScript::new(logbook.read().medications().cloned());
 
     let selected_script_id = use_signal(|| None::<ScriptId>);
     provide_context(selected_script_id);
@@ -80,9 +83,9 @@ pub fn Scripts() -> Element {
 
 #[component]
 fn ScriptsList() -> Element {
-    let logbook = use_context::<Signal<Logbook>>();
+    let snapshot = use_context::<ReadSignal<LogbookSnapshot>>();
 
-    let mut scripts = logbook.read().scripts().to_vec();
+    let mut scripts = snapshot.read().scripts().cloned().collect::<Vec<_>>();
     scripts.sort_by_key(|s| s.issued_on());
 
     let zero_scripts = scripts.is_empty();
@@ -103,20 +106,25 @@ fn ScriptsList() -> Element {
 }
 
 #[component]
-fn ScriptsListItem(script: Script) -> Element {
+fn ScriptsListItem(script: ScriptSnapshot) -> Element {
     let script_id = script.id();
+    let health = script.health();
+    let status = script.status();
     let mut selected_script_id = use_context::<Signal<Option<ScriptId>>>();
 
     rsx! {
         li {
             class: "scripts__list-item",
+            class: "{health}",
             class: if *selected_script_id.read() == Some(script_id) { "selected" },
             key: "{script_id}",
             onclick: move |_| selected_script_id.set(Some(script_id)),
-            span { {tid!("script-description",
+            div { {tid!("script-description",
                 issued_on: script.issued_on().to_string(),
-                expires_on: script.expires_on().to_string(),
-                item_count: script.items().count())} }
+                expires_on: script.expires_on().to_string())} }
+            if status != ScriptStatus::Ok {
+                div { {tid!(&status.to_string())} }
+            }
             MedicationsList { script }
         }
 
@@ -124,29 +132,33 @@ fn ScriptsListItem(script: Script) -> Element {
 }
 
 #[component]
-fn MedicationsList(script: Script) -> Element {
-    let logbook = use_context::<Signal<Logbook>>();
-    let medications = script.items().filter_map(|i| {
-        let medication_id = i.medication_id();
-        logbook.read().medication(medication_id).cloned()
-    });
+fn MedicationsList(script: ScriptSnapshot) -> Element {
+    let items = Vec::from(script.items());
 
     rsx! {
         ul {
             class: "scripts__medications__list",
-            for medication in medications {
-                MedicationsListItem { medication }
+            for item in items {
+                MedicationsListItem { item }
             }
         }
     }
 }
 
 #[component]
-fn MedicationsListItem(medication: Medication) -> Element {
+fn MedicationsListItem(item: ScriptItemSnapshot) -> Element {
+    let health = item.health();
+    let status = item.status();
+    let medication = item.medication();
+
     rsx! {
         li {
             class: "scripts__medications__list-item",
-            "{medication}"
+            class: "{health}",
+            div { {tid!("medication-description", name: medication.name(), strength: medication.strength())} }
+            if status != ScriptItemStatus::SupplyOk {
+                div { {tid!(&status.to_string())} }
+            }
         }
     }
 }
@@ -254,15 +266,13 @@ fn ScriptItemsList() -> Element {
 #[component]
 fn ScriptItemsListItem(item: DraftScriptItem, on_change: EventHandler<DraftScriptItem>) -> Element {
     let logbook = use_context::<Signal<Logbook>>();
+    let logbook = logbook.read();
 
     let is_selected = item.selected;
     let repeats = item.repeats;
 
     let medication_id = item.medication_id;
-    let medication = logbook
-        .read()
-        .medication(medication_id)
-        .map_or_else(String::default, |m| m.to_string());
+    let medication = logbook.medication_unchecked(medication_id);
 
     rsx! {
         li {
@@ -275,10 +285,10 @@ fn ScriptItemsListItem(item: DraftScriptItem, on_change: EventHandler<DraftScrip
                     checked: is_selected,
                     onchange: move |event| {
                         item.selected = event.checked();
-                        on_change.call(item.clone());
+                        on_change.call(item);
                     }
                 }
-                "{medication}"
+                {tid!("medication-description", name: medication.name(), strength: medication.strength())}
             }
 
             input {
@@ -290,7 +300,7 @@ fn ScriptItemsListItem(item: DraftScriptItem, on_change: EventHandler<DraftScrip
                     let count = event.value().parse::<usize>().unwrap_or_default();
                     item.selected = count != 0;
                     item.repeats = SupplyCount::from(count);
-                    on_change.call(item.clone());
+                    on_change.call(item);
                 },
             }
         }

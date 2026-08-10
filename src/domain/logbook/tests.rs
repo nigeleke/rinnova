@@ -26,7 +26,7 @@ fn existing_medication_can_be_removed() {
         .logbook
         .try_remove_medication(id)
         .expect("should remove medication");
-    assert!(fixture.logbook.medications().is_empty());
+    assert_eq!(fixture.logbook.medications().count(), 0);
 }
 
 #[test]
@@ -91,7 +91,6 @@ fn script_for_unknown_medication_cannot_be_added() {
         .expect("script should be valid");
 
     let result = fixture.logbook.try_add_script(script);
-
     assert!(matches!(
         result,
         Err(LogbookError::UnknownMedication(id))
@@ -128,7 +127,7 @@ fn script_can_be_removed_if_all_supplies_used() {
     let script_id = fixture.script_id("script01");
 
     assert!(fixture.logbook.try_remove_script(script_id).is_ok());
-    assert!(fixture.logbook.scripts().is_empty());
+    assert_eq!(fixture.logbook.scripts().count(), 0);
 }
 
 #[test]
@@ -144,7 +143,7 @@ fn script_can_be_removed_even_if_current_and_supplies_remaining() {
     let script_id = fixture.script_id("script01");
 
     assert!(fixture.logbook.try_remove_script(script_id).is_ok());
-    assert!(fixture.logbook.scripts().is_empty());
+    assert_eq!(fixture.logbook.scripts().count(), 0);
 }
 
 #[test]
@@ -160,7 +159,7 @@ fn script_can_be_removed_if_expired_and_supplies_remaining() {
     let script_id = fixture.script_id("script01");
 
     assert!(fixture.logbook.try_remove_script(script_id).is_ok());
-    assert!(fixture.logbook.scripts().is_empty());
+    assert_eq!(fixture.logbook.scripts().count(), 0);
 }
 
 #[test]

@@ -53,8 +53,9 @@
 }
 
 .medications__form > label {
-    display: flex;
-    flex-direction: row;
+    grid-template-columns: 2fr 3fr;
+    display: grid;
+    inline-size: 100%;
 }
 
 .medications__form > label > input,

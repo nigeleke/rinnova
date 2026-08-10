@@ -1,7 +1,7 @@
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum NotificationLevel {
-    Info,
-    Success,
+    _Info,
+    _Success,
     Warning,
     Error,
 }
@@ -9,8 +9,8 @@ pub enum NotificationLevel {
 impl NotificationLevel {
     pub fn class(&self) -> &'static str {
         match self {
-            NotificationLevel::Info => "notification-info",
-            NotificationLevel::Success => "notification-success",
+            NotificationLevel::_Info => "notification-info",
+            NotificationLevel::_Success => "notification-success",
             NotificationLevel::Warning => "notification-warning",
             NotificationLevel::Error => "notification-error",
         }
