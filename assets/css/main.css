@@ -42,11 +42,15 @@ body {
     background-color: var(--background-color);
     color: var(--color);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
 }
 
 #main {
     block-size: 100%;
     min-block-size: 0;
+    inline-size: 80%;
+    min-inline-size: 0;
     max-inline-size: 500px;
 }
 

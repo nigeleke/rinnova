@@ -3,6 +3,7 @@
     grid-template-rows: auto auto auto auto 1fr;
     gap: 1rem;
     block-size: 100%;
+    min-block-size: 0;
 
     &:not(:has(.unselected)) {
         gap: 3rem;
