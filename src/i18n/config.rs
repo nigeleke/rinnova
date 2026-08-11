@@ -1,5 +1,5 @@
 use dioxus_i18n::prelude::*;
-use dioxus_i18n::unic_langid::{langid, LanguageIdentifier};
+use dioxus_i18n::unic_langid::{LanguageIdentifier, langid};
 
 pub fn config(initial_language: LanguageIdentifier) -> I18nConfig {
     I18nConfig::new(initial_language)
