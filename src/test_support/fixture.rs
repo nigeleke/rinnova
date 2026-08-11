@@ -135,7 +135,7 @@ impl Fixture {
 
     fn script_items(&self, items: &[(&str, usize)]) -> Vec<ScriptItem> {
         items
-            .into_iter()
+            .iter()
             .map(|(name, repeats)| {
                 let id = self.medication_id_or_unknown(name);
                 ScriptItem::new(id, SupplyCount::from(*repeats))

@@ -33,7 +33,7 @@ pub fn DateInput(
             r#for: &id,
             span {
                 class: "date-input__label",
-                "{label}"
+                "{label.to_string()}"
             }
             input {
                 id: &id,

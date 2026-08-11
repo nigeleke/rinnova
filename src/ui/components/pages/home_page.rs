@@ -1,11 +1,14 @@
 use dioxus::prelude::*;
 use dioxus_i18n::tid;
 
-use crate::application::Model;
-use crate::application::View;
-use crate::ui::components::{Medications, Refills, Reminders, Scripts};
+use crate::application::{Model, View};
+use crate::ui::components::{Medications, Refills, Reminders, Scripts, Version};
+
 #[component]
 pub fn HomePage() -> Element {
+    let model = use_context::<Signal<Model>>();
+    let current_view = model.read().view();
+
     rsx! {
         document::Stylesheet { href: asset!("/assets/css/home_page.css") }
         div {
@@ -14,7 +17,9 @@ pub fn HomePage() -> Element {
             Panel { view: View::Refills, Refills {} }
             Panel { view: View::Scripts, Scripts {} }
             Panel { view: View::Medications, Medications {} }
-            Version { }
+            if current_view == View::HomePage {
+                Version { }
+            }
         }
     }
 }
@@ -41,23 +46,6 @@ fn Panel(view: View, children: Element) -> Element {
 
             if show_children {
                 {children}
-            }
-        }
-    }
-}
-
-#[component]
-fn Version() -> Element {
-    let model = use_context::<Signal<Model>>();
-    let current_view = model.read().view();
-    let version = env!("CARGO_PKG_VERSION");
-
-    rsx! {
-        if current_view == View::HomePage {
-            div {
-                class: "home-page__version",
-                img { src: asset!("/assets/images/rinnova_logo.jpg")}
-                div { {tid!("version", version: version)} }
             }
         }
     }

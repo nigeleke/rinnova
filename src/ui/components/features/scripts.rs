@@ -154,7 +154,7 @@ fn MedicationsListItem(item: ScriptItemSnapshot) -> Element {
     rsx! {
         li {
             class: "scripts__medications__list-item",
-            class: "{health}",
+            class: "{health.to_string()}",
             div { {tid!("medication-description", name: medication.name(), strength: medication.strength())} }
             if status != ScriptItemStatus::SupplyOk {
                 div { {tid!(&status.to_string())} }

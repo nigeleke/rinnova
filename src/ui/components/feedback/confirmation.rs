@@ -21,7 +21,7 @@ pub fn Confirmation(
             div {
                 class: "confirmation {theme}",
 
-                p { "{message}" }
+                p { "{message.to_string()}" }
 
                 div {
                     class: "confirmation__commands",

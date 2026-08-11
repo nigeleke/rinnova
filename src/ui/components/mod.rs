@@ -10,4 +10,4 @@ pub use feedback::{
     Confirmation, ConfirmationTheme, Notification, NotificationId, NotificationLevel, Notifications,
 };
 pub use layout::Modal;
-pub use pages::{HomePage, TermsPage, WelcomePage};
+pub use pages::{HomePage, TermsPage, Version, WelcomePage};

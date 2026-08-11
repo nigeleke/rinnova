@@ -64,7 +64,7 @@ fn ReminderList() -> Element {
 #[component]
 fn MedicationsListItems(title: String, medications: Vec<MedicationSnapshot>) -> Element {
     rsx! {
-        li { h3 { "{title}" } }
+        li { h3 { {title.to_string()} } }
         for medication in medications {
             li { {tid!("medication-description", name: medication.name(), strength: medication.strength())} }
         }

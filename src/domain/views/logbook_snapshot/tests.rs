@@ -13,7 +13,7 @@ fn medication_snapshot<'a>(s: &'a LogbookSnapshot, name: &str) -> &'a Medication
         .unwrap_or_else(|| panic!("medication snapshot `{name}` missing"))
 }
 
-fn script_snapshot<'a>(s: &'a LogbookSnapshot, script_id: ScriptId) -> &'a ScriptSnapshot {
+fn script_snapshot(s: &LogbookSnapshot, script_id: ScriptId) -> &ScriptSnapshot {
     s.scripts()
         .find(|s| s.script().id() == script_id)
         .unwrap_or_else(|| panic!("script snapshot missing"))
