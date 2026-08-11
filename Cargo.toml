@@ -1,6 +1,6 @@
 [package]
 name = "rinnova"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Nigel Eke"]
 edition = "2024"
 

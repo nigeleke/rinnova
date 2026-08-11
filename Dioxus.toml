@@ -1,21 +1,13 @@
 [application]
+name = "rinnova"
+default_platform = "web"
+asset_dir = "assets"
 
 [web.app]
-
-# HTML title tag content
 title = "rinnova"
+#uncomment for gh-pages deploy.
+#base_path = "rinnova/app"
 
-# include `assets` in web platform
-[web.resource]
-
-# Additional CSS style files
-style = []
-
-# Additional JavaScript files
-script = []
-
-[web.resource.dev]
-
-# Javascript code file
-# serve: [dev-server] only
-script = []
+[bundle]
+identifier = "io.github.nigeleke"
+publisher = "Nigel Eke"
