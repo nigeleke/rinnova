@@ -10,4 +10,7 @@
         height: auto;
         max-width: 100%;
     }
+    div {
+        padding-block-end: 1rem;
+    }
 }

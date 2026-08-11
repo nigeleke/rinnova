@@ -2,7 +2,7 @@
     --background-color: #FFB85C;
 
     display: grid;
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr) auto auto;
     gap: 1rem;
     block-size: 100%;
     min-block-size: 0;

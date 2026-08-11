@@ -2,6 +2,7 @@ use dioxus::prelude::*;
 use dioxus_i18n::tid;
 
 use crate::application::Model;
+use crate::ui::components::Version;
 
 #[component]
 pub fn WelcomePage() -> Element {
@@ -21,6 +22,7 @@ pub fn WelcomePage() -> Element {
                 onclick: move |_| model.write().mark_welcome_seen(),
                 {tid!("welcome-continue-button.text")}
             }
+            Version { }
         }
     }
 }

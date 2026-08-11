@@ -60,12 +60,12 @@ script-item-status =
 welcome-heading = rinnova
 
 welcome-para-01 =
-    rinnova helps keep track of medicines, prescriptions and repeats in one place.{" "}
+    rinnova helps keep track of prescriptions and repeats in one place.{" "}
     It makes it easier to see what is on hand, what is due next, and which prescription{" "}
     to use.
 
 welcome-para-02 =
-    All information is stored only on the device.{" "}
+    All information is stored only on this device.{" "}
     rinnova is a personal organiser to help manage prescription records.{" "}
     It does not provide medical advice or replace guidance from a doctor or{" "}
     pharmacist.
@@ -79,14 +79,14 @@ welcome-continue-button =
 terms-heading = A few things first
 
 terms-para-01 =
-    All information is stored only on the device.{" "}
+    All information is stored only on this device.{" "}
     rinnova is a personal organiser to help manage prescription records.{" "}
     It does not provide medical advice or replace guidance from a doctor or pharmacist.
 
 terms-para-02 =
     Although every effort has been made to make rinnova reliable, no guarantee is{" "}
     given that the information entered or displayed is complete, accurate or up to date.{" "}
-    Responsibility for checking medicines, prescriptions, repeat availability and expiry{" "}
+    Responsibility for checking medications, prescriptions, repeat availability and expiry{" "}
     dates remains with the user.{" "}
     The authors of rinnova accept no liability for any loss, damage or injury arising{" "}
     from its use.
@@ -178,6 +178,6 @@ refill-form-issued-on-label = Issued on:
 # -------------------------------------
 # Reminders panel
 reminders-subtitle =
-    .no-repeats = No repeats
+    .no-repeats = No script
     .last-repeats = Last repeat
     .script-expiring = Script expiring

@@ -3,6 +3,7 @@ use dioxus_i18n::tid;
 use web_sys::wasm_bindgen::JsCast;
 
 use crate::application::{Model, View};
+use crate::ui::components::Version;
 
 #[component]
 pub fn TermsPage() -> Element {
@@ -55,6 +56,7 @@ pub fn TermsPage() -> Element {
                     {tid!("terms-continue-button.text")}
                 }
             }
+            Version { }
         }
     }
 }
