@@ -15,7 +15,7 @@ pub fn TermsPage() -> Element {
 
     let mut check_scrolled = move || {
         if let Some(e) = content_ref() {
-            let at_bottom = e.scroll_top() + e.client_height() >= e.scroll_height();
+            let at_bottom = e.scroll_top() + e.client_height() >= e.scroll_height() - 1;
             terms_read.set(at_bottom);
         }
     };
