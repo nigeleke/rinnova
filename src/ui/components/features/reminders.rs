@@ -66,7 +66,7 @@ fn MedicationsListItems(title: String, medications: Vec<MedicationSnapshot>) -> 
     rsx! {
         li { h3 { {title.to_string()} } }
         for medication in medications {
-            li { {tid!("medication-description", name: medication.name(), strength: medication.strength())} }
+            li { {medication.medication().to_string()} }
         }
     }
 }

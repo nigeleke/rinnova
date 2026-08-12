@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
-use crate::domain::{Date, ScriptId, ScriptSnapshot, ScriptStatus, Supply, SupplyCount};
+use crate::domain::{
+    Date, ScriptId, ScriptSnapshot, ScriptStatus, Supply, SupplyCount, SupplyItem,
+};
 
 use super::DraftRefillItem;
 
@@ -44,14 +46,19 @@ impl DraftRefill {
         }
     }
 
-    pub fn as_supplies(&self) -> impl Iterator<Item = Supply> {
+    pub fn as_supply(&self) -> Supply {
         let issued_on = self.issued_on;
 
-        self.selected_items().map(move |item| {
-            let script_id = item.script_id;
-            let medication_id = item.medication_id;
-            Supply::new(script_id, medication_id, issued_on)
-        })
+        let items = self
+            .selected_items()
+            .map(move |item| {
+                let script_id = item.script_id;
+                let medication_id = item.medication_id;
+                SupplyItem::new(script_id, medication_id)
+            })
+            .collect::<Vec<_>>();
+
+        Supply::new(issued_on, &items)
     }
 }
 

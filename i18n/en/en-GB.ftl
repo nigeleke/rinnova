@@ -4,16 +4,17 @@ version = Version {$version}
 date = {$day}/{$month}/{$year}
 medication-definite = the medication
 medication-indefinite = a medication
-medication-description =
-    { NUMBER($strength) ->
-        [0] { $name }
-       *[other] { $name } ({ $strength })
-    }
+medication-description-name = {$name}
+medication-description-name-strength = {$name} ({$strength})
 refill-definite = the refill
 refill-indefinite = a refill
 script-definite = the prescription
 script-indefinite = a prescription
 script-description = Date {$issued_on} - {$expires_on}
+script-short-description = Script {$issued_on}
+supply-definite = the supply
+supply-indefinite = a supply
+supply-description = Supply issued on {$issued_on}
 
 # -------------------------------------
 # Error messages
@@ -30,6 +31,7 @@ error =
     .invalid-script = Invalid {$id}
     .invalid-draft-script = Invalid draft script
     .unknown-medication = Unknown medication {$id}
+    .invalid-supply = Invalid {$id}
     .duplicate-supply = Duplicated {$id}
     .script-out-of-date = Script {$id} is out of date
     .medication-not-on-script = Medication {$medication_id} is not on script {$script_id}
@@ -181,3 +183,4 @@ reminders-subtitle =
     .no-repeats = No script
     .last-repeats = Last repeat
     .script-expiring = Script expiring
+delete-supply = Permanently delete {$supply}?

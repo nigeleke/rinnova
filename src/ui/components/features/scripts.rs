@@ -22,7 +22,7 @@ pub fn Scripts() -> Element {
     let mut logbook = use_context::<Signal<Logbook>>();
     let default_draft_script = move || DraftScript::new(logbook.read().medications().cloned());
 
-    let selected_script_id = use_signal(|| None::<ScriptId>);
+    let mut selected_script_id = use_signal(|| None::<ScriptId>);
     provide_context(selected_script_id);
 
     let mut draft = use_signal(|| None::<DraftScript>);
@@ -71,6 +71,7 @@ pub fn Scripts() -> Element {
                             Notification::notify(error);
                         }
                         draft.set(None);
+                        selected_script_id.set(None);
                         delete_confirmation.set(None);
                     },
                     on_cancel: move |_| delete_confirmation.set(None),
@@ -155,7 +156,7 @@ fn MedicationsListItem(item: ScriptItemSnapshot) -> Element {
         li {
             class: "scripts__medications__list-item",
             class: "{health.to_string()}",
-            div { {tid!("medication-description", name: medication.name(), strength: medication.strength())} }
+            div { {medication.to_string()} }
             if status != ScriptItemStatus::SupplyOk {
                 div { {tid!(&status.to_string())} }
             }
@@ -288,7 +289,7 @@ fn ScriptItemsListItem(item: DraftScriptItem, on_change: EventHandler<DraftScrip
                         on_change.call(item);
                     }
                 }
-                {tid!("medication-description", name: medication.name(), strength: medication.strength())}
+                {medication.to_string()}
             }
 
             input {

@@ -150,7 +150,7 @@ impl Fixture {
         medication: &str,
         issued_on: Date,
     ) -> Self {
-        let supply = self.build_supply(script, medication, issued_on);
+        let supply = self.build_supply(issued_on, &[(script, medication)]);
         let supply_id = supply.id();
         self.logbook
             .record_supply(supply)
@@ -159,10 +159,17 @@ impl Fixture {
         self
     }
 
-    pub fn build_supply(&self, script: &str, medication: &str, issued_on: Date) -> Supply {
-        let script_id = self.script_id_or_unknown(script);
-        let medication_id = self.medication_id_or_unknown(medication);
-        Supply::new(script_id, medication_id, issued_on)
+    pub fn build_supply(&self, issued_on: Date, items: &[(&str, &str)]) -> Supply {
+        let items = items
+            .into_iter()
+            .map(|i| {
+                let script_id = self.script_id_or_unknown(i.0);
+                let medication_id = self.medication_id_or_unknown(i.1);
+                SupplyItem::new(script_id, medication_id)
+            })
+            .collect::<Vec<_>>();
+
+        Supply::new(issued_on, &items)
     }
 
     pub fn has_supply(&self, id: SupplyId) -> bool {

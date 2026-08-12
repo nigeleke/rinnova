@@ -43,6 +43,9 @@ pub enum LogbookError {
     #[error("error.duplicate-supply")]
     DuplicateSupply(SupplyId),
 
+    #[error("error.invalid-supply")]
+    InvalidSupply(SupplyId),
+
     #[error("error.script-out-of-date")]
     ScriptOutOfDate(ScriptId),
 

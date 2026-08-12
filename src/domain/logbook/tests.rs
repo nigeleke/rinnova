@@ -210,7 +210,7 @@ fn dispensing_can_be_recorded() {
         .medication("med01")
         .current_script("script01", &[("med01", 5)]);
 
-    let supply = fixture.build_supply("script01", "med01", fixture.today());
+    let supply = fixture.build_supply(fixture.today(), &[("script01", "med01")]);
     let supply_id = supply.id();
 
     fixture
@@ -227,7 +227,7 @@ fn dispensing_for_unknown_script_is_rejected() {
         .medication("med01")
         .current_script("script01", &[("med01", 5)]);
 
-    let supply = fixture.build_supply("unknown", "med01", fixture.today());
+    let supply = fixture.build_supply(fixture.today(), &[("unknown", "med01")]);
     let supply_id = supply.id();
 
     let result = fixture.logbook.record_supply(supply);
@@ -242,7 +242,7 @@ fn dispensing_for_unknown_medication_is_rejected() {
         .medication("med01")
         .current_script("script01", &[("med01", 5)]);
 
-    let supply = fixture.build_supply("script01", "unknown", fixture.today());
+    let supply = fixture.build_supply(fixture.today(), &[("script01", "unknown")]);
     let supply_id = supply.id();
 
     let result = fixture.logbook.record_supply(supply);
@@ -258,7 +258,7 @@ fn dispensing_for_medication_not_on_script_is_rejected() {
         .medication("med02")
         .current_script("script01", &[("med01", 5)]);
 
-    let supply = fixture.build_supply("script01", "med02", fixture.today());
+    let supply = fixture.build_supply(fixture.today(), &[("script01", "med02")]);
     let supply_id = supply.id();
 
     let result = fixture.logbook.record_supply(supply);
@@ -276,7 +276,7 @@ fn dispensing_after_script_expiry_is_rejected() {
         .medication("med01")
         .expired_script("script01", &[("med01", 5)]);
 
-    let supply = fixture.build_supply("script01", "med01", fixture.today());
+    let supply = fixture.build_supply(fixture.today(), &[("script01", "med01")]);
     let supply_id = supply.id();
 
     let result = fixture.logbook.record_supply(supply);
@@ -291,7 +291,7 @@ fn dispensing_before_script_issue_date_is_rejected() {
         .medication("med01")
         .current_script("script01", &[("med01", 5)]);
 
-    let supply = fixture.build_supply("script01", "med01", fixture.yesterday());
+    let supply = fixture.build_supply(fixture.yesterday(), &[("script01", "med01")]);
     let supply_id = supply.id();
 
     let result = fixture.logbook.record_supply(supply);
@@ -306,7 +306,7 @@ fn dispensing_can_occur_on_script_issue_date() {
         .medication("med01")
         .current_script("script01", &[("med01", 5)]);
 
-    let supply = fixture.build_supply("script01", "med01", fixture.today());
+    let supply = fixture.build_supply(fixture.today(), &[("script01", "med01")]);
     let supply_id = supply.id();
 
     fixture
@@ -323,7 +323,7 @@ fn dispensing_can_occur_on_script_expiry_date() {
         .medication("med01")
         .current_script("script01", &[("med01", 5)]);
 
-    let supply = fixture.build_supply("script01", "med01", fixture.future());
+    let supply = fixture.build_supply(fixture.future(), &[("script01", "med01")]);
     let supply_id = supply.id();
 
     fixture

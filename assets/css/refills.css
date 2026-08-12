@@ -35,16 +35,37 @@
 .refills__previous-supplies {
     border-top: 2px solid var(--background-color);
     padding-block: 1rem;
+    block-size: 100%;
     min-block-size: 0;
+    display: grid;
+    grid-template-rows: 1fr auto;
 }
 
-.refills__previous-supplies__list {
+.refills__previous-supplies__scripts-list {
     min-block-size: 0;
     max-block-size: 100%;
     overflow: auto;
 }
 
-.refills__previous-supplies__list-item {
+.refills__previous-supplies__scripts-list-item.selected {
+    border: 1px solid color-mix(in srgb, var(--panel-background-color) 70%, black);;
+}
+
+.refills__previous-supplies__medications-list {
+    padding-inline-start: 1rem;
+}
+
+.refills__previous-supplies__medications-list-item {
     display: grid;
     grid-template-columns: 1fr auto;
+    margin-block-start: 0;
+    &> *:nth-child(2) {
+        font-size: smaller;
+    }
+}
+
+.refills__previous-supplies__commands {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
 }

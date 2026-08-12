@@ -120,6 +120,11 @@ impl Notification {
                 Notification::error(&error)
             }
 
+            LogbookError::InvalidSupply(id) => {
+                let error = tid!("error.invalid-supply", id: id.to_string());
+                Notification::error(&error)
+            }
+
             LogbookError::ScriptOutOfDate(id) => {
                 let error = tid!("error.script-out-of-date", id: id.to_string());
                 Notification::error(&error)

@@ -3,6 +3,7 @@ mod id;
 pub use id::MedicationId;
 
 // ------------------------------------
+use dioxus_i18n::tid;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -62,5 +63,21 @@ impl Medication {
     pub fn equivalent_to(&self, other: &Self) -> bool {
         self.name.eq_ignore_ascii_case(&other.name)
             && self.strength.eq_ignore_ascii_case(&other.strength)
+    }
+}
+
+impl std::fmt::Display for Medication {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let name = &self.name;
+        let strength = self.strength.trim();
+        let has_strength = !self.strength.trim().is_empty();
+
+        let description = if has_strength {
+            tid!("medication-description-name-strength", name: name, strength: strength)
+        } else {
+            tid!("medication-description-name", name: name)
+        };
+
+        description.fmt(f)
     }
 }

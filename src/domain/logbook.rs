@@ -125,35 +125,48 @@ impl Logbook {
         self.supplies.values()
     }
 
+    pub fn supply(&self, supply_id: SupplyId) -> Option<&Supply> {
+        self.supplies.get(&supply_id)
+    }
+
+    pub fn supply_unchecked(&self, supply_id: SupplyId) -> &Supply {
+        self.supplies
+            .get(&supply_id)
+            .expect("{supply_id} must exist")
+    }
+
     pub fn record_supply(&mut self, supply: Supply) -> Result<(), LogbookError> {
         let supply_id = supply.id();
         if self.supplies.contains_key(&supply_id) {
             return Err(LogbookError::DuplicateSupply(supply_id));
         }
 
-        let script_id = supply.script_id();
-        let script = self
-            .scripts
-            .get_mut(&script_id)
-            .ok_or(LogbookError::InvalidScript(script_id))?;
-
-        let medication_id = supply.medication_id();
-        if !self.medications.contains_key(&medication_id) {
-            return Err(LogbookError::InvalidMedication(medication_id));
-        }
-
         let issued_on = supply.issued_on();
-        if !script.is_valid_on(issued_on) {
-            return Err(LogbookError::ScriptOutOfDate(script_id));
-        }
+        supply.items().try_for_each(|i| {
+            let script_id = i.script_id();
+            let medication_id = i.medication_id();
 
-        script
-            .items()
-            .find(|i| i.medication_id() == medication_id)
-            .ok_or(LogbookError::MedicationNotOnScript(
-                script_id,
-                medication_id,
-            ))?;
+            let valid_script = self
+                .script(script_id)
+                .ok_or(LogbookError::InvalidScript(script_id))?;
+
+            (valid_script.is_valid_on(issued_on))
+                .ok_or(LogbookError::ScriptOutOfDate(script_id))?;
+
+            let _valid_medication = self
+                .medication(medication_id)
+                .ok_or(LogbookError::InvalidMedication(medication_id))?;
+
+            let _valid_script_medication =
+                valid_script
+                    .item(medication_id)
+                    .ok_or(LogbookError::MedicationNotOnScript(
+                        script_id,
+                        medication_id,
+                    ))?;
+
+            Ok::<_, LogbookError>(())
+        })?;
 
         self.supplies.insert(supply_id, supply);
         Ok(())
@@ -162,6 +175,13 @@ impl Logbook {
     pub fn record_supply_unchecked(&mut self, supply: Supply) {
         self.record_supply(supply)
             .expect("supply should have been recorded");
+    }
+
+    pub fn try_remove_supply(&mut self, id: SupplyId) -> Result<(), LogbookError> {
+        match self.supplies.remove(&id) {
+            Some(_) => Ok(()),
+            None => Err(LogbookError::InvalidSupply(id)),
+        }
     }
 }
 

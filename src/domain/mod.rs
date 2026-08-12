@@ -13,7 +13,7 @@ pub use logbook::Logbook;
 pub use medication::{Medication, MedicationId};
 pub use reminder::Reminder;
 pub use script::{Script, ScriptId, ScriptItem};
-pub use supply::{Supply, SupplyCount, SupplyId};
+pub use supply::{Supply, SupplyCount, SupplyId, SupplyItem};
 pub use views::{
     Health, LogbookSnapshot, MedicationSnapshot, MedicationStatus, ScriptItemSnapshot,
     ScriptItemStatus, ScriptSnapshot, ScriptStatus,

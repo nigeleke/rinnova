@@ -8,8 +8,10 @@ use draft_refill_item::DraftRefillItem;
 use dioxus::prelude::*;
 use dioxus_i18n::tid;
 
-use crate::domain::{Logbook, LogbookSnapshot, ScriptId, Supply};
-use crate::ui::components::DateInput;
+use crate::domain::{Logbook, LogbookSnapshot, ScriptId, Supply, SupplyId, SupplyItem};
+use crate::ui::components::{
+    Confirmation, ConfirmationTheme, DateInput, DeleteButton, Notification,
+};
 
 #[component]
 pub fn Refills() -> Element {
@@ -43,7 +45,7 @@ fn EligibleSupplies() -> Element {
             IssuedOn { }
             EligibleSuppliesList { }
             EligibleSuppliesCommands {
-                on_submit: move |supplies: Vec<_>| supplies.into_iter().for_each(|s| logbook.write().record_supply_unchecked(s)),
+                on_submit: move |supply| logbook.write().record_supply_unchecked(supply),
             }
         }
     }
@@ -147,14 +149,14 @@ fn EligibleMedicationsListItem(
                     on_change.call(item)
                 }
             }
-            span { {tid!("medication-description", name: medication.name(), strength: medication.strength())} }
+            span { {medication.to_string()} }
             span { {tid!(&status)} }
         }
     }
 }
 
 #[component]
-fn EligibleSuppliesCommands(on_submit: EventHandler<Vec<Supply>>) -> Element {
+fn EligibleSuppliesCommands(on_submit: EventHandler<Supply>) -> Element {
     let draft = use_context::<Signal<DraftRefill>>();
 
     rsx! {
@@ -163,8 +165,8 @@ fn EligibleSuppliesCommands(on_submit: EventHandler<Vec<Supply>>) -> Element {
             aria_label: tid!("dispensed-button.aria-label"),
             disabled: draft.read().selected_items().count() == 0,
             onclick: move |_| {
-                let supplies = draft.read().as_supplies().collect::<Vec<_>>();
-                on_submit.call(supplies);
+                let supply = draft.read().as_supply();
+                on_submit.call(supply);
             },
             {tid!("dispensed-button.text")}
         }
@@ -173,16 +175,42 @@ fn EligibleSuppliesCommands(on_submit: EventHandler<Vec<Supply>>) -> Element {
 
 #[component]
 fn PreviousSupplies() -> Element {
+    let mut logbook = use_context::<Signal<Logbook>>();
+
+    let mut selected_supply_id = use_signal(|| None::<SupplyId>);
+    provide_context(selected_supply_id);
+
+    let mut delete_confirmation = use_signal(|| None::<SupplyId>);
+
     rsx! {
         div {
             class: "refills__previous-supplies",
-            PreviousSuppliesList {}
+            PreviousSuppliesScriptsList {}
+            PreviousSuppliesCommands {
+                on_delete: move |id| delete_confirmation.set(Some(id)),
+            }
+            if let Some(id) = *delete_confirmation.read()
+                && let Some(supply) = logbook.read().supply(id) {
+                Confirmation {
+                    theme: ConfirmationTheme::Destructive,
+                    message: tid!("delete-supply", supply: supply.to_string()),
+                    on_ok: move |_| {
+                        if let Err(error) = logbook.write().try_remove_supply(id) {
+                            Notification::notify(error);
+                        }
+                        selected_supply_id.set(None);
+                        delete_confirmation.set(None);
+                    },
+                    on_cancel: move |_| delete_confirmation.set(None),
+                }
+            }
+
         }
     }
 }
 
 #[component]
-fn PreviousSuppliesList() -> Element {
+fn PreviousSuppliesScriptsList() -> Element {
     let logbook = use_context::<Signal<Logbook>>();
 
     let mut supplies = logbook.read().supplies().cloned().collect::<Vec<_>>();
@@ -191,29 +219,77 @@ fn PreviousSuppliesList() -> Element {
 
     rsx! {
         ul {
-            class: "refills__previous-supplies__list",
+            class: "refills__previous-supplies__scripts-list",
             for supply in supplies {
-                PreviousSuppliesListItem { supply }
+                PreviousSuppliesScriptsListItem { supply }
             }
         }
     }
 }
 
 #[component]
-fn PreviousSuppliesListItem(supply: Supply) -> Element {
-    let logbook = use_context::<Signal<Logbook>>();
-
-    let medication = logbook
-        .read()
-        .medication_unchecked(supply.medication_id())
-        .clone();
+fn PreviousSuppliesScriptsListItem(supply: Supply) -> Element {
+    let supply_id = supply.id();
     let issued_on = supply.issued_on().to_string();
+    let mut selected_supply_id = use_context::<Signal<Option<SupplyId>>>();
 
     rsx! {
         li {
-            class: "refills__previous-supplies__list-item",
-            span { {issued_on} }
-            span { {tid!("medication-description", name: medication.name(), strength: medication.strength())} }
+            class: "refills__previous-supplies__scripts-list-item",
+            class: if *selected_supply_id.read() == Some(supply_id) { "selected" },
+            key: "{supply_id}",
+            onclick: move |_| selected_supply_id.set(Some(supply_id)),
+            div { {issued_on} }
+            PreviousSuppliesMedicationsList { supply }
+        }
+    }
+}
+
+#[component]
+fn PreviousSuppliesMedicationsList(supply: Supply) -> Element {
+    let items = Vec::from_iter(supply.items().cloned());
+
+    rsx! {
+        ul {
+            class: "refills__previous-supplies__medications-list",
+            for item in items {
+                PreviousSuppliesMedicationsListItem { item }
+            }
+        }
+    }
+}
+
+#[component]
+fn PreviousSuppliesMedicationsListItem(item: SupplyItem) -> Element {
+    let logbook = use_context::<Signal<Logbook>>();
+
+    let script = logbook.read().script_unchecked(item.script_id()).clone();
+    let medication = logbook
+        .read()
+        .medication_unchecked(item.medication_id())
+        .clone();
+
+    rsx! {
+        li {
+            class: "refills__previous-supplies__medications-list-item",
+            span { {medication.to_string()} }
+            span { {tid!("script-short-description", issued_on: script.issued_on().to_string())} }
+        }
+    }
+}
+
+#[component]
+fn PreviousSuppliesCommands(on_delete: EventHandler<SupplyId>) -> Element {
+    let selected_supply_id = use_context::<Signal<Option<SupplyId>>>();
+
+    rsx! {
+        div {
+            class: "refills__previous-supplies__commands",
+            DeleteButton {
+                definite_object: tid!("supply-definite"),
+                disabled: selected_supply_id.read().is_none(),
+                onclick: move |_| selected_supply_id.read().iter().for_each(|id| on_delete.call(*id)),
+            }
         }
     }
 }

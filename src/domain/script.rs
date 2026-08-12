@@ -10,7 +10,7 @@ use std::collections::HashSet;
 use dioxus_i18n::tid;
 use serde::{Deserialize, Serialize};
 
-use crate::domain::{Date, LogbookError};
+use crate::domain::{Date, LogbookError, MedicationId};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Script {
@@ -88,6 +88,18 @@ impl Script {
 
     pub fn items(&self) -> impl Iterator<Item = ScriptItem> + '_ {
         self.items.iter().copied()
+    }
+
+    pub fn item(&self, medication_id: MedicationId) -> Option<ScriptItem> {
+        self.items
+            .iter()
+            .find(|i| i.medication_id() == medication_id)
+            .copied()
+    }
+
+    pub fn item_unchecked(&self, medication_id: MedicationId) -> ScriptItem {
+        self.item(medication_id)
+            .expect("{medication_id} must exist")
     }
 }
 

@@ -8,7 +8,6 @@ pub struct LogbookSnapshot {
     as_of: Date,
     medications: Vec<MedicationSnapshot>,
     scripts: Vec<ScriptSnapshot>,
-    // reminders: Vec<Reminder>,
 }
 
 impl LogbookSnapshot {
@@ -43,9 +42,7 @@ impl LogbookSnapshot {
                         logbook.medication(medication_id).map(|medication| {
                             let dispensed_count = supplies_dispensed
                                 .iter()
-                                .filter(|s| {
-                                    s.script_id() == script_id && s.medication_id() == medication_id
-                                })
+                                .filter(|s| s.item(script_id, medication_id).is_some())
                                 .count();
                             let dispensed_count = SupplyCount::from(dispensed_count);
                             let remaining_supplies =

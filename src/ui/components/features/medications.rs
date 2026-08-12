@@ -16,7 +16,7 @@ use crate::ui::components::{
 pub fn Medications() -> Element {
     let mut logbook = use_context::<Signal<Logbook>>();
 
-    let selected_medication_id = use_signal(|| None::<MedicationId>);
+    let mut selected_medication_id = use_signal(|| None::<MedicationId>);
     provide_context(selected_medication_id);
 
     let mut draft = use_signal(|| None::<DraftMedication>);
@@ -62,15 +62,13 @@ pub fn Medications() -> Element {
                 && let Some(medication) = logbook.read().medication(id) {
                 Confirmation {
                     theme: ConfirmationTheme::Destructive,
-                    message: tid!("delete-medication",
-                        medication: tid!("medication-description",
-                            name: medication.name(),
-                            strength: medication.strength())),
+                    message: tid!("delete-medication", medication: medication.to_string()),
                     on_ok: move |_| {
                         if let Err(error) = logbook.write().try_remove_medication(id) {
                             Notification::notify(error);
                         }
                         draft.set(None);
+                        selected_medication_id.set(None);
                         delete_confirmation.set(None);
                     },
                     on_cancel: move |_| delete_confirmation.set(None),
@@ -117,7 +115,7 @@ fn MedicationsListItem(medication: MedicationSnapshot) -> Element {
             class: if *selected_medication_id.read() == Some(medication_id) { "selected" },
             key: "{medication_id}",
             onclick: move |_| selected_medication_id.set(Some(medication_id)),
-            span { {tid!("medication-description", name: medication.name(), strength: medication.strength())} }
+            span { {medication.medication().to_string()} }
             span { {tid!(&status.to_string())} }
         }
     }
