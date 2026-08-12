@@ -28,7 +28,7 @@ pub fn TermsPage() -> Element {
                 class: "terms-page__content",
                 onmounted: move |event| content_ref.set(event.as_web_event().dyn_into().ok()),
                 onresize: move |_| check_scrolled(),
-                onscrollend: move |_| check_scrolled(),
+                onscroll: move |_| check_scrolled(),
                 h1 { {tid!("terms-heading")} }
                 p { {tid!("terms-para-01")} }
                 p { {tid!("terms-para-02")} }
