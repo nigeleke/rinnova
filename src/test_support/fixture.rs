@@ -161,7 +161,7 @@ impl Fixture {
 
     pub fn build_supply(&self, issued_on: Date, items: &[(&str, &str)]) -> Supply {
         let items = items
-            .into_iter()
+            .iter()
             .map(|i| {
                 let script_id = self.script_id_or_unknown(i.0);
                 let medication_id = self.medication_id_or_unknown(i.1);
