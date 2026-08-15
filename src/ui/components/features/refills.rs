@@ -79,7 +79,7 @@ fn EligibleSuppliesList() -> Element {
         .filter(|s| script_ids.contains(&s.id()))
         .cloned()
         .collect::<Vec<_>>();
-    scripts.sort_by(|a, b| a.issued_on().cmp(&b.issued_on()));
+    scripts.sort_by_key(Script::issued_on);
 
     rsx! {
         ul {
@@ -127,7 +127,7 @@ fn EligibleMedicationsList(items: Vec<DraftRefillItem>) -> Element {
             )
         })
         .collect::<Vec<_>>();
-    item_medications.sort_by(|a, b| a.1.to_string().cmp(&b.1.to_string()));
+    item_medications.sort_by_key(|a| a.1.to_string());
 
     rsx! {
         ul {
