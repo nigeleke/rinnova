@@ -28,10 +28,12 @@
     animation: notifications__list-item__enter 250ms ease-out;
 
     &.notification-error {
-        background-color: red;
+        background-color: var(--desctructive-background-color);
+        color: var(--desctructive-color);
     }
     &.notification-warning {
-        background-color: orange;
+        background-color: var(--warning-background-color);
+        color: var(--warning-color);
     }
 }
 
