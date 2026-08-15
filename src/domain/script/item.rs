@@ -23,4 +23,8 @@ impl ScriptItem {
     pub fn authorised_repeats(&self) -> SupplyCount {
         self.authorised_repeats
     }
+
+    pub fn remaining_supplies(&self) -> SupplyCount {
+        self.authorised_repeats() + SupplyCount::ONE
+    }
 }

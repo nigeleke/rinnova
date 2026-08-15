@@ -197,10 +197,7 @@ fn medication_in_script_cannot_be_removed() {
     let medication_id = fixture.medication_id("med01");
 
     let result = fixture.logbook.try_remove_medication(medication_id);
-    assert!(matches!(
-        result,
-        Err(LogbookError::MedicationUsedInScript(_))
-    ));
+    assert!(matches!(result, Err(LogbookError::MedicationUsedInScript)));
     assert!(fixture.has_medication(medication_id));
 }
 

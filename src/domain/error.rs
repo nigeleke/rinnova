@@ -20,7 +20,7 @@ pub enum LogbookError {
     InvalidDraftMedication,
 
     #[error("error.medication-used-in-script")]
-    MedicationUsedInScript(MedicationId),
+    MedicationUsedInScript,
 
     #[error("error.invalid-expiry-date")]
     InvalidExpiryDate(Date),
@@ -36,6 +36,9 @@ pub enum LogbookError {
 
     #[error("error.invalid-draft-script")]
     InvalidDraftScript,
+
+    #[error("error.script-used-in-supply")]
+    ScriptUsedInSupply,
 
     #[error("error.script-contains-unknown-medication")]
     UnknownMedication(MedicationId),

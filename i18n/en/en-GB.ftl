@@ -15,6 +15,7 @@ script-short-description = Script {$issued_on}
 supply-definite = the supply
 supply-indefinite = a supply
 supply-description = Supply issued on {$issued_on}
+remaining-supplies = {$n} remaining
 
 # -------------------------------------
 # Error messages
@@ -24,12 +25,13 @@ error =
     .duplicate-medication = Duplicated {$id}
     .invalid-medication = Invalid {$id}
     .invalid-draft-medication = Invalid draft medication
-    .medication-used-in-script = Medication {$name} is referenced in scripts
+    .medication-used-in-script = Medication is referenced in scripts
     .invalid-expiry-date = Invalid expiry date {$date}
     .no-medications = Prescription has no medications
     .duplicate-script = Duplicated {$id}
     .invalid-script = Invalid {$id}
     .invalid-draft-script = Invalid draft script
+    .script-used-in-supply = Script is referenced in supplies
     .unknown-medication = Unknown medication {$id}
     .invalid-supply = Invalid {$id}
     .duplicate-supply = Duplicated {$id}

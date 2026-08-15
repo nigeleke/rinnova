@@ -20,7 +20,7 @@ use crate::ui::components::{
 #[component]
 pub fn Scripts() -> Element {
     let mut logbook = use_context::<Signal<Logbook>>();
-    let default_draft_script = move || DraftScript::new(logbook.read().medications().cloned());
+    let default_draft_script = move || DraftScript::new(logbook.read().medications());
 
     let mut selected_script_id = use_signal(|| None::<ScriptId>);
     provide_context(selected_script_id);
@@ -35,7 +35,11 @@ pub fn Scripts() -> Element {
             ScriptsList { }
             ScriptsCommands {
                 on_add: move || draft.set(Some(default_draft_script())),
-                on_edit: move |id| draft.set(logbook.read().script(id).map(|script| default_draft_script().using_script(script))),
+                on_edit: move |id| {
+                    let update = default_draft_script()
+                        .using_script(logbook.read().script_unchecked(id));
+                    draft.set(Some(update))
+                },
                 on_delete: move |id| delete_confirmation.set(Some(id)),
             }
 
@@ -148,18 +152,23 @@ fn MedicationsList(script: ScriptSnapshot) -> Element {
 
 #[component]
 fn MedicationsListItem(item: ScriptItemSnapshot) -> Element {
+    let medication_id = item.medication_id();
     let health = item.health();
     let status = item.status();
     let medication = item.medication();
+    let remaining_supplies = item.remaining_supplies();
+    let status = match status {
+        ScriptItemStatus::SupplyOk => tid!("remaining-supplies", n: remaining_supplies.to_string()),
+        ScriptItemStatus::LastRepeat | ScriptItemStatus::NoRepeats => tid!(&status.to_string()),
+    };
 
     rsx! {
         li {
             class: "scripts__medications__list-item",
             class: "{health.to_string()}",
-            div { {medication.to_string()} }
-            if status != ScriptItemStatus::SupplyOk {
-                div { {tid!(&status.to_string())} }
-            }
+            key: "{medication_id}",
+            span { {medication.to_string()} }
+            span { {status} }
         }
     }
 }
@@ -266,14 +275,7 @@ fn ScriptItemsList() -> Element {
 
 #[component]
 fn ScriptItemsListItem(item: DraftScriptItem, on_change: EventHandler<DraftScriptItem>) -> Element {
-    let logbook = use_context::<Signal<Logbook>>();
-    let logbook = logbook.read();
-
-    let is_selected = item.selected;
-    let repeats = item.repeats;
-
-    let medication_id = item.medication_id;
-    let medication = logbook.medication_unchecked(medication_id);
+    let mut item = use_signal(|| item);
 
     rsx! {
         li {
@@ -283,25 +285,25 @@ fn ScriptItemsListItem(item: DraftScriptItem, on_change: EventHandler<DraftScrip
                 class: "scripts__script-items__medication",
                 input {
                     r#type: "checkbox",
-                    checked: is_selected,
+                    checked: item.read().selected,
                     onchange: move |event| {
-                        item.selected = event.checked();
-                        on_change.call(item);
+                        item.write().selected = event.checked();
+                        on_change.call(item());
                     }
                 }
-                {medication.to_string()}
+                {item.read().medication.to_string()}
             }
 
             input {
-                id: "{medication_id}",
+                id: "{item.read().medication.id()}",
                 r#type: "number",
                 min: "0",
-                value: "{repeats}",
+                value: "{item.read().repeats}",
                 onchange: move |event| {
                     let count = event.value().parse::<usize>().unwrap_or_default();
-                    item.selected = count != 0;
-                    item.repeats = SupplyCount::from(count);
-                    on_change.call(item);
+                    item.write().selected = count != 0;
+                    item.write().repeats = SupplyCount::from(count);
+                    on_change.call(item());
                 },
             }
         }

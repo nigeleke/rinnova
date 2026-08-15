@@ -56,15 +56,22 @@ impl Logbook {
 
     pub fn try_remove_medication(&mut self, id: MedicationId) -> Result<(), LogbookError> {
         let is_referenced = || {
-            self.scripts
+            let script_reference = self
+                .scripts
                 .values()
                 .flat_map(Script::items)
-                .any(|item| item.medication_id() == id)
+                .any(|item| item.medication_id() == id);
+            let supply_reference = self
+                .supplies
+                .values()
+                .flat_map(Supply::items)
+                .any(|item| item.medication_id() == id);
+            script_reference || supply_reference
         };
 
         match self.medications.get(&id) {
             None => Err(LogbookError::InvalidMedication(id)),
-            Some(_) if is_referenced() => Err(LogbookError::MedicationUsedInScript(id)),
+            Some(_) if is_referenced() => Err(LogbookError::MedicationUsedInScript),
             _ => {
                 self.medications.remove(&id);
                 Ok(())
@@ -115,9 +122,20 @@ impl Logbook {
     }
 
     pub fn try_remove_script(&mut self, id: ScriptId) -> Result<(), LogbookError> {
-        match self.scripts.remove(&id) {
-            Some(_) => Ok(()),
+        let is_referenced = || {
+            self.supplies
+                .values()
+                .flat_map(Supply::items)
+                .any(|item| item.script_id() == id)
+        };
+
+        match self.scripts.get(&id) {
             None => Err(LogbookError::InvalidScript(id)),
+            Some(_) if is_referenced() => Err(LogbookError::ScriptUsedInSupply),
+            Some(_) => {
+                self.scripts.remove(&id);
+                Ok(())
+            }
         }
     }
 

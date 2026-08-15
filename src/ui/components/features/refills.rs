@@ -8,7 +8,9 @@ use draft_refill_item::DraftRefillItem;
 use dioxus::prelude::*;
 use dioxus_i18n::tid;
 
-use crate::domain::{Logbook, LogbookSnapshot, ScriptId, Supply, SupplyId, SupplyItem};
+use crate::domain::{
+    Logbook, LogbookSnapshot, Medication, Script, ScriptItemStatus, Supply, SupplyId, SupplyItem,
+};
 use crate::ui::components::{
     Confirmation, ConfirmationTheme, DateInput, DeleteButton, Notification,
 };
@@ -67,31 +69,36 @@ fn IssuedOn() -> Element {
 
 #[component]
 fn EligibleSuppliesList() -> Element {
+    let logbook = use_context::<Signal<Logbook>>();
     let draft = use_context::<Signal<DraftRefill>>();
 
     let script_ids = draft.read().items.keys().copied().collect::<Vec<_>>();
+    let mut scripts = logbook
+        .read()
+        .scripts()
+        .filter(|s| script_ids.contains(&s.id()))
+        .cloned()
+        .collect::<Vec<_>>();
+    scripts.sort_by(|a, b| a.issued_on().cmp(&b.issued_on()));
 
     rsx! {
         ul {
             class: "refills__eligible-supplies__list",
-            for script_id in script_ids {
-                EligibleSuppliesListItem { script_id }
+            for script in scripts {
+                EligibleSuppliesListItem { script }
             }
         }
     }
 }
 
 #[component]
-fn EligibleSuppliesListItem(script_id: ScriptId) -> Element {
-    let logbook = use_context::<Signal<Logbook>>();
-    let script = logbook.read().script_unchecked(script_id).clone();
-
+fn EligibleSuppliesListItem(script: Script) -> Element {
     let draft = use_context::<Signal<DraftRefill>>();
 
     let items = draft
         .read()
         .items
-        .get(&script_id)
+        .get(&script.id())
         .cloned()
         .unwrap_or(Vec::default());
 
@@ -108,14 +115,27 @@ fn EligibleSuppliesListItem(script_id: ScriptId) -> Element {
 
 #[component]
 fn EligibleMedicationsList(items: Vec<DraftRefillItem>) -> Element {
+    let logbook = use_context::<Signal<Logbook>>();
     let mut draft = use_context::<Signal<DraftRefill>>();
+
+    let mut item_medications = items
+        .into_iter()
+        .map(|i| {
+            (
+                i,
+                logbook.read().medication_unchecked(i.medication_id).clone(),
+            )
+        })
+        .collect::<Vec<_>>();
+    item_medications.sort_by(|a, b| a.1.to_string().cmp(&b.1.to_string()));
 
     rsx! {
         ul {
             class: "refills__eligible-medications__list",
-            for item in items {
+            for item_medication in item_medications {
                 EligibleMedicationsListItem {
-                    item,
+                    item: item_medication.0,
+                    medication: item_medication.1,
                     on_change: move |item| draft.write().update_item(item),
                 }
             }
@@ -126,6 +146,7 @@ fn EligibleMedicationsList(items: Vec<DraftRefillItem>) -> Element {
 #[component]
 fn EligibleMedicationsListItem(
     item: DraftRefillItem,
+    medication: Medication,
     on_change: EventHandler<DraftRefillItem>,
 ) -> Element {
     let logbook = use_context::<Signal<Logbook>>();
@@ -133,14 +154,24 @@ fn EligibleMedicationsListItem(
         .read()
         .medication_unchecked(item.medication_id)
         .clone();
+    let remaining_supplies = logbook
+        .read()
+        .script_unchecked(item.script_id)
+        .remaining_supplies(medication.id());
 
     let is_selected = item.selected;
 
-    let status = item.status.to_string();
+    let status = item.status;
+    let status = match status {
+        ScriptItemStatus::SupplyOk => tid!("remaining-supplies", n: remaining_supplies.to_string()),
+        ScriptItemStatus::LastRepeat | ScriptItemStatus::NoRepeats => tid!(&status.to_string()),
+    };
+    let health = item.status.health();
 
     rsx! {
         li {
             class: "refills__eligible-medications__list-item",
+            class: "{health.to_string()}",
             input {
                 r#type: "checkbox",
                 checked: is_selected,
@@ -150,7 +181,7 @@ fn EligibleMedicationsListItem(
                 }
             }
             span { {medication.to_string()} }
-            span { {tid!(&status)} }
+            span { {status} }
         }
     }
 }

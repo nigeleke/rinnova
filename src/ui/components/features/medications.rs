@@ -6,7 +6,7 @@ use draft_medication::DraftMedication;
 use dioxus::prelude::*;
 use dioxus_i18n::tid;
 
-use crate::domain::{Logbook, LogbookSnapshot, MedicationId, MedicationSnapshot};
+use crate::domain::{Logbook, LogbookSnapshot, MedicationId, MedicationSnapshot, MedicationStatus};
 use crate::ui::components::{
     AddButton, CancelButton, Confirmation, ConfirmationTheme, DeleteButton, EditButton, Modal,
     Notification, OkButton,
@@ -83,7 +83,8 @@ fn MedicationsList() -> Element {
     let snapshot = use_context::<ReadSignal<LogbookSnapshot>>();
     let snapshot = snapshot.read();
 
-    let medications = snapshot.medications().cloned().collect::<Vec<_>>();
+    let mut medications = snapshot.medications().cloned().collect::<Vec<_>>();
+    medications.sort_by(|a, b| a.name().cmp(b.name()));
     let zero_medications = medications.is_empty();
 
     rsx! {
@@ -105,6 +106,13 @@ fn MedicationsList() -> Element {
 fn MedicationsListItem(medication: MedicationSnapshot) -> Element {
     let medication_id = medication.id();
     let status = medication.status();
+    let remaining_supplies = medication.remaining_supplies();
+    let status = match status {
+        MedicationStatus::Ok => tid!("remaining-supplies", n: remaining_supplies.to_string()),
+        MedicationStatus::LastRepeat | MedicationStatus::NoRepeats => tid!(&status.to_string()),
+    };
+
+    info!("Statys: '{status}'");
 
     let mut selected_medication_id = use_context::<Signal<Option<MedicationId>>>();
 
@@ -116,7 +124,7 @@ fn MedicationsListItem(medication: MedicationSnapshot) -> Element {
             key: "{medication_id}",
             onclick: move |_| selected_medication_id.set(Some(medication_id)),
             span { {medication.medication().to_string()} }
-            span { {tid!(&status.to_string())} }
+            span { {status} }
         }
     }
 }

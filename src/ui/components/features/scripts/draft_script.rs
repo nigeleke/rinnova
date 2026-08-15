@@ -11,8 +11,8 @@ pub struct DraftScript {
 }
 
 impl DraftScript {
-    pub fn new(medications: impl IntoIterator<Item = Medication>) -> Self {
-        let mut medications = medications.into_iter().collect::<Vec<_>>();
+    pub fn new<'a>(medications: impl Iterator<Item = &'a Medication>) -> Self {
+        let mut medications = medications.cloned().collect::<Vec<_>>();
         medications.sort_by(|a, b| a.name().cmp(b.name()));
 
         let id = None;
@@ -34,10 +34,17 @@ impl DraftScript {
         self.id = Some(script.id());
         self.issued_on = script.issued_on();
         self.expires_on = script.expires_on();
-        script
-            .items()
-            .map(|item| DraftScriptItem::from(&item))
-            .for_each(|item| self.update_item(item));
+
+        script.items().for_each(|script_item| {
+            if let Some(draft_item) = self
+                .items
+                .iter_mut()
+                .find(|i| i.medication.id() == script_item.medication_id())
+            {
+                draft_item.selected = true;
+                draft_item.repeats = script_item.authorised_repeats();
+            };
+        });
 
         self
     }
@@ -70,7 +77,7 @@ impl DraftScript {
         if let Some(existing) = self
             .items
             .iter_mut()
-            .find(|i| i.medication_id == item.medication_id)
+            .find(|i| i.medication.id() == item.medication.id())
         {
             *existing = item;
         }

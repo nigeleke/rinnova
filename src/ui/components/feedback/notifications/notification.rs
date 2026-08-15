@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use dioxus_i18n::tid;
 
-use crate::domain::{Logbook, LogbookError};
+use crate::domain::LogbookError;
 use crate::ui::components::{NotificationId, NotificationLevel};
 
 use gloo_timers::future::TimeoutFuture;
@@ -49,7 +49,6 @@ impl Notification {
     }
 
     pub fn notify(error: LogbookError) {
-        let logbook = use_context::<Signal<Logbook>>();
         let mut notifications = use_context::<Signal<Vec<Self>>>();
 
         let notification = match error {
@@ -78,10 +77,8 @@ impl Notification {
                 Notification::error(&error)
             }
 
-            LogbookError::MedicationUsedInScript(id) => {
-                let logbook = logbook.read();
-                let name = logbook.medication_unchecked(id).name();
-                let error = tid!("error.medication-used-in-script", name: name);
+            LogbookError::MedicationUsedInScript => {
+                let error = tid!("error.medication-used-in-script");
                 Notification::warning(&error)
             }
 
@@ -108,6 +105,11 @@ impl Notification {
             LogbookError::InvalidDraftScript => {
                 let error = tid!("error.invalid-draft-script");
                 Notification::error(&error)
+            }
+
+            LogbookError::ScriptUsedInSupply => {
+                let error = tid!("error.script-used-in-supply");
+                Notification::warning(&error)
             }
 
             LogbookError::UnknownMedication(id) => {
