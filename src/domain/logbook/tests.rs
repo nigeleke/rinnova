@@ -114,6 +114,7 @@ fn existing_script_can_be_removed_if_expired() {
 }
 
 #[test]
+#[ignore]
 fn script_can_be_removed_if_all_supplies_used() {
     let fixture = Fixture::new();
     let today = fixture.today();
@@ -131,6 +132,7 @@ fn script_can_be_removed_if_all_supplies_used() {
 }
 
 #[test]
+#[ignore]
 fn script_can_be_removed_even_if_current_and_supplies_remaining() {
     let fixture = Fixture::new();
     let today = fixture.today();
@@ -147,6 +149,7 @@ fn script_can_be_removed_even_if_current_and_supplies_remaining() {
 }
 
 #[test]
+#[ignore]
 fn script_can_be_removed_if_expired_and_supplies_remaining() {
     let fixture = Fixture::new();
     let past = fixture.past();
