@@ -35,10 +35,12 @@ fn EligibleSupplies() -> Element {
     let mut draft = use_signal(DraftRefill::default);
     provide_context(draft);
 
+    let issued_on = use_memo(move || draft.read().issued_on);
+
     use_effect(move || {
         draft
             .write()
-            .with_scripts(snapshot.read().eligible_scripts());
+            .with_scripts(snapshot.read().eligible_scripts(*issued_on.read()));
     });
 
     rsx! {

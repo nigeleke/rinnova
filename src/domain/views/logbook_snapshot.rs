@@ -130,8 +130,8 @@ impl LogbookSnapshot {
         self.scripts.iter()
     }
 
-    pub fn eligible_scripts(&self) -> impl Iterator<Item = &ScriptSnapshot> {
-        self.scripts().filter(|s| s.is_valid(self.as_of))
+    pub fn eligible_scripts(&self, as_of: Date) -> impl Iterator<Item = &ScriptSnapshot> {
+        self.scripts().filter(move |s| s.is_valid(as_of))
     }
 }
 
