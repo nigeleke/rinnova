@@ -112,8 +112,6 @@ fn MedicationsListItem(medication: MedicationSnapshot) -> Element {
         MedicationStatus::LastRepeat | MedicationStatus::NoRepeats => tid!(&status.to_string()),
     };
 
-    info!("Statys: '{status}'");
-
     let mut selected_medication_id = use_context::<Signal<Option<MedicationId>>>();
 
     rsx! {

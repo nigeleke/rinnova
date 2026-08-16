@@ -1,8 +1,10 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use serde::{Deserialize, Serialize};
 
-use crate::domain::{LogbookError, Medication, MedicationId, Script, ScriptId, Supply, SupplyId};
+use crate::domain::{
+    Date, LogbookError, Medication, MedicationId, Script, ScriptId, Supply, SupplyId,
+};
 
 #[derive(Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Logbook {
@@ -200,6 +202,31 @@ impl Logbook {
             Some(_) => Ok(()),
             None => Err(LogbookError::InvalidSupply(id)),
         }
+    }
+
+    pub fn housekeeping(&mut self, as_of: Date) {
+        let old_script_ids = self
+            .scripts()
+            .filter_map(|s| (s.expires_on().plus_months(6) <= as_of).then_some(s.id()))
+            .collect::<HashSet<_>>();
+
+        let old_supply_ids = self
+            .supplies()
+            .filter_map(|s| {
+                s.items()
+                    .all(|i| old_script_ids.contains(&i.script_id()))
+                    .then_some(s.id())
+            })
+            .collect::<HashSet<_>>();
+
+        let _ = old_supply_ids
+            .iter()
+            .try_for_each(|id| self.try_remove_supply(*id))
+            .and_then(|_| {
+                old_script_ids
+                    .iter()
+                    .try_for_each(|id| self.try_remove_script(*id))
+            });
     }
 }
 
