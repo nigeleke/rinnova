@@ -150,7 +150,7 @@ fn MedicationsCommands(
             }
             DeleteButton {
                 definite_object: tid!("medication-definite"),
-                disabled: id.read().map_or(true, |id| logbook.read().is_medication_immutable(id)),
+                disabled: id.read().is_none_or(|id| logbook.read().is_medication_immutable(id)),
                 onclick: move |_| if let Some(id) = *id.read() { on_delete.call(id); },
             }
         }
@@ -184,7 +184,7 @@ fn MedicationForm(
                 {tid!("medication-form-medication-label")}
                 input {
                     value: &*draft.read().name,
-                    disabled: draft.read().id.map_or(false, |id| logbook.read().is_medication_immutable(id)),
+                    disabled: draft.read().id.is_some_and(|id| logbook.read().is_medication_immutable(id)),
                     onchange: move |e| draft.write().name = e.value()
                 }
             }
@@ -193,7 +193,7 @@ fn MedicationForm(
                 {tid!("medication-form-strength-label")}
                 input {
                     value: &*draft.read().strength,
-                    disabled: draft.read().id.map_or(false, |id| logbook.read().is_medication_immutable(id)),
+                    disabled: draft.read().id.is_some_and(|id| logbook.read().is_medication_immutable(id)),
                     onchange: move |e| draft.write().strength = e.value()
                 }
             }
