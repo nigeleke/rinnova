@@ -133,6 +133,7 @@ fn MedicationsCommands(
     on_edit: EventHandler<MedicationId>,
     on_delete: EventHandler<MedicationId>,
 ) -> Element {
+    let logbook = use_context::<Signal<Logbook>>();
     let id = use_context::<Signal<Option<MedicationId>>>();
 
     rsx! {
@@ -149,7 +150,7 @@ fn MedicationsCommands(
             }
             DeleteButton {
                 definite_object: tid!("medication-definite"),
-                disabled: id.read().is_none(),
+                disabled: id.read().map_or(true, |id| logbook.read().is_medication_immutable(id)),
                 onclick: move |_| if let Some(id) = *id.read() { on_delete.call(id); },
             }
         }
@@ -162,7 +163,9 @@ fn MedicationForm(
     on_submit: EventHandler<DraftMedication>,
     on_cancel: EventHandler<()>,
 ) -> Element {
-    let mut draft = use_signal(|| value);
+    let logbook = use_context::<Signal<Logbook>>();
+
+    let mut draft = use_signal(move || value);
 
     let mut can_submit = use_signal(|| false);
     use_effect(move || can_submit.set(draft.read().is_valid()));
@@ -181,6 +184,7 @@ fn MedicationForm(
                 {tid!("medication-form-medication-label")}
                 input {
                     value: &*draft.read().name,
+                    disabled: draft.read().id.map_or(false, |id| logbook.read().is_medication_immutable(id)),
                     onchange: move |e| draft.write().name = e.value()
                 }
             }
@@ -189,6 +193,7 @@ fn MedicationForm(
                 {tid!("medication-form-strength-label")}
                 input {
                     value: &*draft.read().strength,
+                    disabled: draft.read().id.map_or(false, |id| logbook.read().is_medication_immutable(id)),
                     onchange: move |e| draft.write().strength = e.value()
                 }
             }

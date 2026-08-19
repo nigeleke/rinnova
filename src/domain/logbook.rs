@@ -26,6 +26,12 @@ impl Logbook {
         self.medication(id).expect("{id} must exist")
     }
 
+    pub fn is_medication_immutable(&self, id: MedicationId) -> bool {
+        self.scripts
+            .values()
+            .any(|s| s.items().any(|i| i.medication_id() == id))
+    }
+
     pub fn try_add_medication(&mut self, medication: Medication) -> Result<(), LogbookError> {
         let id = medication.id();
         match self.medications.get(&id) {
@@ -93,6 +99,12 @@ impl Logbook {
         self.script(id).expect("{id} must exist")
     }
 
+    pub fn is_script_immutable(&self, id: ScriptId) -> bool {
+        self.supplies
+            .values()
+            .any(|s| s.items().any(|i| i.script_id() == id))
+    }
+
     pub fn try_add_script(&mut self, script: Script) -> Result<(), LogbookError> {
         let id = script.id();
         match self.scripts.get(&id) {
@@ -155,7 +167,7 @@ impl Logbook {
             .expect("{supply_id} must exist")
     }
 
-    pub fn record_supply(&mut self, supply: Supply) -> Result<(), LogbookError> {
+    pub fn try_add_supply(&mut self, supply: Supply) -> Result<(), LogbookError> {
         let supply_id = supply.id();
         if self.supplies.contains_key(&supply_id) {
             return Err(LogbookError::DuplicateSupply(supply_id));
@@ -192,8 +204,8 @@ impl Logbook {
         Ok(())
     }
 
-    pub fn record_supply_unchecked(&mut self, supply: Supply) {
-        self.record_supply(supply)
+    pub fn add_supply(&mut self, supply: Supply) {
+        self.try_add_supply(supply)
             .expect("supply should have been recorded");
     }
 

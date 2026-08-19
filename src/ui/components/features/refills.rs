@@ -49,7 +49,7 @@ fn EligibleSupplies() -> Element {
             IssuedOn { }
             EligibleSuppliesList { }
             EligibleSuppliesCommands {
-                on_submit: move |supply| logbook.write().record_supply_unchecked(supply),
+                on_submit: move |supply| logbook.write().add_supply(supply),
             }
         }
     }

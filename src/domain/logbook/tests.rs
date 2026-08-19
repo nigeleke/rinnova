@@ -215,7 +215,7 @@ fn dispensing_can_be_recorded() {
 
     fixture
         .logbook
-        .record_supply(supply)
+        .try_add_supply(supply)
         .expect("dispensing should be recorded");
 
     assert!(fixture.has_supply(supply_id));
@@ -230,7 +230,7 @@ fn dispensing_for_unknown_script_is_rejected() {
     let supply = fixture.build_supply(fixture.today(), &[("unknown", "med01")]);
     let supply_id = supply.id();
 
-    let result = fixture.logbook.record_supply(supply);
+    let result = fixture.logbook.try_add_supply(supply);
     assert!(matches!(result, Err(LogbookError::InvalidScript(_))));
 
     assert!(!fixture.has_supply(supply_id));
@@ -245,7 +245,7 @@ fn dispensing_for_unknown_medication_is_rejected() {
     let supply = fixture.build_supply(fixture.today(), &[("script01", "unknown")]);
     let supply_id = supply.id();
 
-    let result = fixture.logbook.record_supply(supply);
+    let result = fixture.logbook.try_add_supply(supply);
     assert!(matches!(result, Err(LogbookError::InvalidMedication(_))));
 
     assert!(!fixture.has_supply(supply_id));
@@ -261,7 +261,7 @@ fn dispensing_for_medication_not_on_script_is_rejected() {
     let supply = fixture.build_supply(fixture.today(), &[("script01", "med02")]);
     let supply_id = supply.id();
 
-    let result = fixture.logbook.record_supply(supply);
+    let result = fixture.logbook.try_add_supply(supply);
     assert!(matches!(
         result,
         Err(LogbookError::MedicationNotOnScript(_, _))
@@ -279,7 +279,7 @@ fn dispensing_after_script_expiry_is_rejected() {
     let supply = fixture.build_supply(fixture.today(), &[("script01", "med01")]);
     let supply_id = supply.id();
 
-    let result = fixture.logbook.record_supply(supply);
+    let result = fixture.logbook.try_add_supply(supply);
     assert!(matches!(result, Err(LogbookError::ScriptOutOfDate(_))));
 
     assert!(!fixture.has_supply(supply_id));
@@ -294,7 +294,7 @@ fn dispensing_before_script_issue_date_is_rejected() {
     let supply = fixture.build_supply(fixture.yesterday(), &[("script01", "med01")]);
     let supply_id = supply.id();
 
-    let result = fixture.logbook.record_supply(supply);
+    let result = fixture.logbook.try_add_supply(supply);
     assert!(matches!(result, Err(LogbookError::ScriptOutOfDate(_))));
 
     assert!(!fixture.has_supply(supply_id));
@@ -311,7 +311,7 @@ fn dispensing_can_occur_on_script_issue_date() {
 
     fixture
         .logbook
-        .record_supply(supply)
+        .try_add_supply(supply)
         .expect("dispensing should be recorded");
 
     assert!(fixture.has_supply(supply_id));
@@ -328,7 +328,7 @@ fn dispensing_can_occur_on_script_expiry_date() {
 
     fixture
         .logbook
-        .record_supply(supply)
+        .try_add_supply(supply)
         .expect("dispensing should be recorded");
 
     assert!(fixture.has_supply(supply_id));

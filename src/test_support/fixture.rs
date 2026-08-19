@@ -153,7 +153,7 @@ impl Fixture {
         let supply = self.build_supply(issued_on, &[(script, medication)]);
         let supply_id = supply.id();
         self.logbook
-            .record_supply(supply)
+            .try_add_supply(supply)
             .expect("supply should be recorded");
         self.supplies.insert(name, supply_id);
         self

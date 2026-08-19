@@ -179,6 +179,7 @@ fn ScriptsCommands(
     on_edit: EventHandler<ScriptId>,
     on_delete: EventHandler<ScriptId>,
 ) -> Element {
+    let logbook = use_context::<Signal<Logbook>>();
     let id = use_context::<Signal<Option<ScriptId>>>();
 
     rsx! {
@@ -190,12 +191,12 @@ fn ScriptsCommands(
             }
             EditButton {
                 definite_object: tid!("script-definite"),
-                disabled: id.read().is_none(),
+                disabled: id.read().map_or(true, |id| logbook.read().is_script_immutable(id)),
                 onclick: move |_| if let Some(id) = *id.read() { on_edit.call(id) },
             }
             DeleteButton {
                 definite_object: tid!("script-definite"),
-                disabled: id.read().is_none(),
+                disabled: id.read().map_or(true, |id| logbook.read().is_script_immutable(id)),
                 onclick: move |_| if let Some(id) = *id.read() { on_delete.call(id) },
             }
         }
