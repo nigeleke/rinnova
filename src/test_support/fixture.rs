@@ -1,3 +1,4 @@
+use jiff::Span;
 use std::collections::HashMap;
 
 use crate::domain::*;
@@ -26,15 +27,15 @@ impl Fixture {
     }
 
     pub fn yesterday(&self) -> Date {
-        self.today.less_days(1)
+        self.today - Period::from(Span::new().days(1))
     }
 
     pub fn future(&self) -> Date {
-        self.today.plus_months(6)
+        self.today + Period::from(Span::new().months(6))
     }
 
     pub fn past(&self) -> Date {
-        self.yesterday().less_months(6)
+        self.yesterday() - Period::from(Span::new().months(6))
     }
 
     pub fn medication(self, name: &'static str) -> Self {

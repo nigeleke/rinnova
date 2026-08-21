@@ -9,7 +9,8 @@ use dioxus::prelude::*;
 use dioxus_i18n::tid;
 
 use crate::domain::{
-    Logbook, LogbookSnapshot, Medication, Script, ScriptItemStatus, Supply, SupplyId, SupplyItem,
+    Logbook, LogbookError, LogbookSnapshot, Medication, Script, ScriptItemStatus, Supply,
+    SupplyCount, SupplyId, SupplyItem,
 };
 use crate::ui::components::{
     Confirmation, ConfirmationTheme, DateInput, DeleteButton, Notification,
@@ -122,11 +123,12 @@ fn EligibleMedicationsList(items: Vec<DraftRefillItem>) -> Element {
 
     let mut item_medications = items
         .into_iter()
-        .map(|i| {
-            (
-                i,
-                logbook.read().medication_unchecked(i.medication_id).clone(),
-            )
+        .filter_map(|item| match logbook.read().medication(item.medication_id) {
+            Some(medication) => Some((item, medication.clone())),
+            None => {
+                Notification::internal_error(LogbookError::InvalidMedication(item.medication_id));
+                None
+            }
         })
         .collect::<Vec<_>>();
     item_medications.sort_by_key(|a| a.1.to_string());
@@ -152,14 +154,13 @@ fn EligibleMedicationsListItem(
     on_change: EventHandler<DraftRefillItem>,
 ) -> Element {
     let logbook = use_context::<Signal<Logbook>>();
-    let medication = logbook
-        .read()
-        .medication_unchecked(item.medication_id)
-        .clone();
-    let remaining_supplies = logbook
-        .read()
-        .script_unchecked(item.script_id)
-        .remaining_supplies(medication.id());
+    let remaining_supplies = match logbook.read().script(item.script_id) {
+        Some(script) => script.remaining_supplies(medication.id()),
+        None => {
+            Notification::internal_error(LogbookError::InvalidScript(item.script_id));
+            SupplyCount::ZERO
+        }
+    };
 
     let is_selected = item.selected;
 
@@ -229,7 +230,7 @@ fn PreviousSupplies() -> Element {
                     message: tid!("delete-supply", supply: supply.to_string()),
                     on_ok: move |_| {
                         if let Err(error) = logbook.write().try_remove_supply(id) {
-                            Notification::notify(error);
+                            Notification::internal_error(error);
                         }
                         selected_supply_id.set(None);
                         delete_confirmation.set(None);
@@ -296,17 +297,36 @@ fn PreviousSuppliesMedicationsList(supply: Supply) -> Element {
 fn PreviousSuppliesMedicationsListItem(item: SupplyItem) -> Element {
     let logbook = use_context::<Signal<Logbook>>();
 
-    let script = logbook.read().script_unchecked(item.script_id()).clone();
-    let medication = logbook
-        .read()
-        .medication_unchecked(item.medication_id())
-        .clone();
+    let medication_id = item.medication_id();
+    let medication = match logbook.read().medication(medication_id) {
+        Some(medication) => Some(medication.clone()),
+        None => {
+            Notification::internal_error(LogbookError::InvalidMedication(medication_id));
+            None
+        }
+    };
+
+    let script_id = item.script_id();
+    let script = match logbook.read().script(script_id) {
+        Some(script) => Some(script.clone()),
+        None => {
+            Notification::internal_error(LogbookError::InvalidScript(script_id));
+            None
+        }
+    };
 
     rsx! {
-        li {
-            class: "refills__previous-supplies__medications-list-item",
-            span { {medication.to_string()} }
-            span { {tid!("script-short-description", issued_on: script.issued_on().to_string())} }
+        if let (Some(script), Some(medication)) = (script, medication) {
+            li {
+                class: "refills__previous-supplies__medications-list-item",
+                span { {medication.to_string()} }
+                span {
+                    {tid!(
+                        "script-short-description",
+                        issued_on: script.issued_on().to_string()
+                    )}
+                }
+            }
         }
     }
 }

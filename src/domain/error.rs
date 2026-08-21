@@ -54,7 +54,4 @@ pub enum LogbookError {
 
     #[error("error.medication-not-on-script")]
     MedicationNotOnScript(ScriptId, MedicationId),
-
-    #[error("error.medication-out-of-refills")]
-    MedicationOutOfRefills(ScriptId, MedicationId),
 }

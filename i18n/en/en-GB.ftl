@@ -37,7 +37,6 @@ error =
     .duplicate-supply = Duplicated {$id}
     .script-out-of-date = Script {$id} is out of date
     .medication-not-on-script = Medication {$medication_id} is not on script {$script_id}
-    .medication-out-of-refills = Medication {$medication_id} has no refills on script {$script_id}
 
 
 # -------------------------------------

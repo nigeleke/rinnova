@@ -32,10 +32,6 @@ impl MedicationSnapshot {
         self.medication.name()
     }
 
-    pub fn strength(&self) -> &str {
-        self.medication.strength()
-    }
-
     pub fn status(&self) -> MedicationStatus {
         self.status
     }

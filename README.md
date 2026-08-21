@@ -36,7 +36,7 @@ All information is stored locally on your device. `rinnova` does not require an 
 
 ## Not Medical Advice
 
-`rinnova` is a personal organiser. It does not provide medical advice and is not a substitute for guidance from a doctor or pharmacist. You remain responsible for checking prescription validity, medcation availability and dispensing information.
+`rinnova` is a personal organiser. It does not provide medical advice and is not a substitute for guidance from a doctor or pharmacist. You remain responsible for checking prescription validity, medication availability and dispensing information.
 
 ## Development
 

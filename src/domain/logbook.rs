@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
 
 use crate::domain::{
-    Date, LogbookError, Medication, MedicationId, Script, ScriptId, Supply, SupplyId,
+    Date, LogbookError, Medication, MedicationId, Period, Script, ScriptId, Supply, SupplyId,
 };
 
 #[derive(Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -20,10 +20,6 @@ impl Logbook {
 
     pub fn medication(&self, id: MedicationId) -> Option<&Medication> {
         self.medications.get(&id)
-    }
-
-    pub fn medication_unchecked(&self, id: MedicationId) -> &Medication {
-        self.medication(id).expect("{id} must exist")
     }
 
     pub fn is_medication_immutable(&self, id: MedicationId) -> bool {
@@ -95,10 +91,6 @@ impl Logbook {
         self.scripts.get(&id)
     }
 
-    pub fn script_unchecked(&self, id: ScriptId) -> &Script {
-        self.script(id).expect("{id} must exist")
-    }
-
     pub fn is_script_immutable(&self, id: ScriptId) -> bool {
         self.supplies
             .values()
@@ -161,47 +153,51 @@ impl Logbook {
         self.supplies.get(&supply_id)
     }
 
-    pub fn supply_unchecked(&self, supply_id: SupplyId) -> &Supply {
-        self.supplies
-            .get(&supply_id)
-            .expect("{supply_id} must exist")
-    }
-
     pub fn try_add_supply(&mut self, supply: Supply) -> Result<(), LogbookError> {
         let supply_id = supply.id();
-        if self.supplies.contains_key(&supply_id) {
-            return Err(LogbookError::DuplicateSupply(supply_id));
+        match self.supplies.get(&supply_id) {
+            Some(_) => Err(LogbookError::DuplicateSupply(supply_id)),
+            None => self.validate_and_add_supply(supply),
         }
+    }
 
+    fn validate_and_add_supply(&mut self, supply: Supply) -> Result<(), LogbookError> {
+        let supply_id = supply.id();
         let issued_on = supply.issued_on();
+
         supply.items().try_for_each(|i| {
             let script_id = i.script_id();
             let medication_id = i.medication_id();
 
-            let valid_script = self
-                .script(script_id)
-                .ok_or(LogbookError::InvalidScript(script_id))?;
+            let valid_script = self.require_script(script_id)?;
 
-            (valid_script.is_valid_on(issued_on))
+            valid_script
+                .is_valid_on(issued_on)
                 .ok_or(LogbookError::ScriptOutOfDate(script_id))?;
 
-            let _valid_medication = self
-                .medication(medication_id)
-                .ok_or(LogbookError::InvalidMedication(medication_id))?;
+            self.require_medication(medication_id)?;
 
-            let _valid_script_medication =
-                valid_script
-                    .item(medication_id)
-                    .ok_or(LogbookError::MedicationNotOnScript(
-                        script_id,
-                        medication_id,
-                    ))?;
+            valid_script
+                .item(medication_id)
+                .ok_or(LogbookError::MedicationNotOnScript(
+                    script_id,
+                    medication_id,
+                ))?;
 
             Ok::<_, LogbookError>(())
         })?;
 
         self.supplies.insert(supply_id, supply);
         Ok(())
+    }
+
+    fn require_medication(&self, id: MedicationId) -> Result<&Medication, LogbookError> {
+        self.medication(id)
+            .ok_or(LogbookError::InvalidMedication(id))
+    }
+
+    fn require_script(&self, id: ScriptId) -> Result<&Script, LogbookError> {
+        self.script(id).ok_or(LogbookError::InvalidScript(id))
     }
 
     pub fn add_supply(&mut self, supply: Supply) {
@@ -219,7 +215,9 @@ impl Logbook {
     pub fn housekeeping(&mut self, as_of: Date) {
         let old_script_ids = self
             .scripts()
-            .filter_map(|s| (s.expires_on().plus_months(6) <= as_of).then_some(s.id()))
+            .filter_map(|s| {
+                (s.expires_on() + Period::retention_period() <= as_of).then_some(s.id())
+            })
             .collect::<HashSet<_>>();
 
         let old_supply_ids = self

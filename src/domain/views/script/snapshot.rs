@@ -16,6 +16,7 @@ impl ScriptSnapshot {
         }
     }
 
+    #[cfg(test)]
     pub fn script(&self) -> &Script {
         &self.script
     }

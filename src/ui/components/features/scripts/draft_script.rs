@@ -1,4 +1,4 @@
-use crate::domain::{Date, LogbookError, Medication, Script, ScriptId};
+use crate::domain::{Date, LogbookError, Medication, Period, Script, ScriptId};
 
 use super::DraftScriptItem;
 
@@ -17,7 +17,7 @@ impl DraftScript {
 
         let id = None;
         let issued_on = Date::today();
-        let expires_on = issued_on.plus_years(1);
+        let expires_on = issued_on + Period::one_year();
         let items = medications
             .iter()
             .map(DraftScriptItem::from)

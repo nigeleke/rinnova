@@ -1,6 +1,7 @@
 mod application;
 mod domain;
 mod i18n;
+mod macros;
 mod storage;
 mod ui;
 
@@ -8,7 +9,3 @@ mod ui;
 mod test_support;
 
 pub use ui::App;
-
-pub mod prelude {
-    pub use super::domain::*;
-}

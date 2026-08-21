@@ -33,7 +33,6 @@ fn empty_logbook_produces_empty_snapshot() {
     let fixture = Fixture::new();
     let snapshot = snapshot(&fixture, fixture.today());
 
-    assert_eq!(snapshot.as_of(), fixture.today());
     assert_eq!(snapshot.medications().count(), 0);
     assert_eq!(snapshot.scripts().count(), 0);
 }

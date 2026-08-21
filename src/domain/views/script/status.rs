@@ -22,10 +22,10 @@ impl ScriptStatus {
 impl std::fmt::Display for ScriptStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let status = match self {
-            ScriptStatus::Ok => "ok",
-            ScriptStatus::DueToExpire => "due-to-expire",
-            ScriptStatus::NotCurrent => "not-current",
-            ScriptStatus::Exhausted => "exhausted",
+            Self::Ok => "ok",
+            Self::DueToExpire => "due-to-expire",
+            Self::NotCurrent => "not-current",
+            Self::Exhausted => "exhausted",
         };
         write!(f, "script-status.{status}")
     }

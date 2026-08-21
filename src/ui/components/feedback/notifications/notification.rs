@@ -48,6 +48,10 @@ impl Notification {
         self.level.class()
     }
 
+    pub fn internal_error(error: LogbookError) {
+        Self::notify(error);
+    }
+
     pub fn notify(error: LogbookError) {
         let mut notifications = use_context::<Signal<Vec<Self>>>();
 
@@ -134,11 +138,6 @@ impl Notification {
 
             LogbookError::MedicationNotOnScript(script_id, medication_id) => {
                 let error = tid!("error.medication-not-on-script", script_id: script_id.to_string(), medication_id: medication_id.to_string());
-                Notification::error(&error)
-            }
-
-            LogbookError::MedicationOutOfRefills(script_id, medication_id) => {
-                let error = tid!("error.medication-out-of-refills", script_id: script_id.to_string(), medication_id: medication_id.to_string());
                 Notification::error(&error)
             }
         };

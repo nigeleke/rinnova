@@ -1,19 +1,16 @@
 use crate::domain::{
-    Date, Logbook, MedicationSnapshot, MedicationStatus, ScriptItemSnapshot, ScriptItemStatus,
-    ScriptSnapshot, ScriptStatus, SupplyCount,
+    Date, Logbook, MedicationSnapshot, MedicationStatus, Period, ScriptItemSnapshot,
+    ScriptItemStatus, ScriptSnapshot, ScriptStatus, SupplyCount,
 };
 
 #[derive(Default)]
 pub struct LogbookSnapshot {
-    as_of: Date,
     medications: Vec<MedicationSnapshot>,
     scripts: Vec<ScriptSnapshot>,
 }
 
 impl LogbookSnapshot {
     pub fn from(logbook: &Logbook, as_of: Date) -> Self {
-        const DAYS_WARNING: i64 = 14;
-
         let (past_scripts, current_scripts, _future_scripts) = logbook.scripts().fold(
             (Vec::new(), Vec::new(), Vec::new()),
             |(mut past, mut current, mut future), script| {
@@ -60,7 +57,7 @@ impl LogbookSnapshot {
                     .iter()
                     .all(|i| i.remaining_supplies() == SupplyCount::ZERO);
 
-                let due_to_expire = !script.is_valid_on(as_of.plus_days(DAYS_WARNING));
+                let due_to_expire = !script.is_valid_on(as_of + Period::script_expiry_warning());
                 let status = if exhausted {
                     ScriptStatus::Exhausted
                 } else if due_to_expire {
@@ -112,14 +109,9 @@ impl LogbookSnapshot {
             .collect::<Vec<_>>();
 
         Self {
-            as_of,
             medications,
             scripts,
         }
-    }
-
-    pub fn as_of(&self) -> Date {
-        self.as_of
     }
 
     pub fn medications(&self) -> impl Iterator<Item = &MedicationSnapshot> {

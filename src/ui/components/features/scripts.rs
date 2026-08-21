@@ -9,8 +9,8 @@ use dioxus::prelude::*;
 use dioxus_i18n::tid;
 
 use crate::domain::{
-    Logbook, LogbookSnapshot, ScriptId, ScriptItemSnapshot, ScriptItemStatus, ScriptSnapshot,
-    ScriptStatus, SupplyCount,
+    Logbook, LogbookError, LogbookSnapshot, ScriptId, ScriptItemSnapshot, ScriptItemStatus,
+    ScriptSnapshot, ScriptStatus, SupplyCount,
 };
 use crate::ui::components::{
     AddButton, CancelButton, Confirmation, ConfirmationTheme, DateInput, DeleteButton, EditButton,
@@ -36,9 +36,13 @@ pub fn Scripts() -> Element {
             ScriptsCommands {
                 on_add: move || draft.set(Some(default_draft_script())),
                 on_edit: move |id| {
-                    let update = default_draft_script()
-                        .using_script(logbook.read().script_unchecked(id));
-                    draft.set(Some(update))
+                    match logbook.read().script(id) {
+                        Some(script) => {
+                            let update = default_draft_script().using_script(script);
+                            draft.set(Some(update));
+                        }
+                        None => Notification::internal_error(LogbookError::InvalidScript(id)),
+                    }
                 },
                 on_delete: move |id| delete_confirmation.set(Some(id)),
             }
