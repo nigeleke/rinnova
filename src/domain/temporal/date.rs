@@ -13,7 +13,7 @@ impl Date {
         Self(Zoned::now().date())
     }
 
-    pub fn to_iso8601_string(&self) -> String {
+    pub fn to_iso8601_string(self) -> String {
         self.0.to_string()
     }
 
