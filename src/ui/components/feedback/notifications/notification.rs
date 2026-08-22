@@ -48,14 +48,24 @@ impl Notification {
         self.level.class()
     }
 
-    pub fn internal_error(error: LogbookError) {
+    pub fn internal_error(error: &LogbookError) {
         Self::notify(error);
     }
 
-    pub fn notify(error: LogbookError) {
+    pub fn notify(error: &LogbookError) {
         let mut notifications = use_context::<Signal<Vec<Self>>>();
 
         let notification = match error {
+            LogbookError::IndexedDb => {
+                let error = tid!("error.internal-error", error: error.to_string());
+                Notification::error(&error)
+            }
+
+            LogbookError::Serde => {
+                let error = tid!("error.internal-error", error: error.to_string());
+                Notification::error(&error)
+            }
+
             LogbookError::InvalidDate(error) => {
                 let error = tid!("error.invalid-date", error: error.to_string());
                 Notification::error(&error)

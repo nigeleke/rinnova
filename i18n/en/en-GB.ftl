@@ -20,6 +20,7 @@ remaining-supplies = {$n} remaining
 # -------------------------------------
 # Error messages
 error =
+    .internal-error = Internal error: IndexedDb {$error}
     .invalid-date = Invalid date - {$error}
     .matching-medication = Medication {$name} previously added
     .duplicate-medication = Duplicated {$id}

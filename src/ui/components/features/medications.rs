@@ -49,7 +49,7 @@ pub fn Medications() -> Element {
                                     }
                                 })
                             {
-                                Notification::notify(error.clone());
+                                Notification::notify(&error);
                             }
                             draft.set(None);
                         },
@@ -65,7 +65,7 @@ pub fn Medications() -> Element {
                     message: tid!("delete-medication", medication: medication.to_string()),
                     on_ok: move |_| {
                         if let Err(error) = logbook.write().try_remove_medication(id) {
-                            Notification::notify(error);
+                            Notification::notify(&error);
                         }
                         draft.set(None);
                         selected_medication_id.set(None);

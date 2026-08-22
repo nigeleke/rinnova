@@ -1,39 +1,45 @@
 use dioxus::prelude::*;
 use rexie::{ObjectStore, Rexie, TransactionMode};
-use thiserror::Error;
 
-use crate::domain::Logbook;
+use crate::domain::{Logbook, LogbookError};
 
-#[derive(Debug, Error)]
-pub enum StorageError {
-    #[error(transparent)]
-    IndexedDb(#[from] rexie::Error),
-
-    #[error(transparent)]
-    Serde(#[from] serde_wasm_bindgen::Error),
+pub enum PersistenceState {
+    Loading,
+    Idle,
+    Saving,
+    Failed(LogbookError),
 }
 
-pub fn use_logbook() -> Signal<Logbook> {
+pub fn use_logbook() -> (Signal<Logbook>, Signal<PersistenceState>) {
     let mut logbook = use_signal(Logbook::default);
+    let mut persistence = use_signal(|| PersistenceState::Loading);
 
     use_resource(move || async move {
         match load_logbook().await {
-            Ok(loaded) => logbook.set(loaded),
-            Err(error) => error!("Failed to load logbook: {error}"),
+            Ok(loaded) => {
+                logbook.set(loaded);
+                persistence.set(PersistenceState::Idle);
+            }
+            Err(error) => persistence.set(PersistenceState::Failed(error)),
         }
     });
 
     use_effect(move || {
-        let current = logbook.read().clone();
+        let current = logbook();
 
-        spawn(async move {
-            if let Err(error) = save_logbook(&current).await {
-                error!("Failed to save logbook: {error}");
-            }
-        });
+        if matches!(*persistence.peek(), PersistenceState::Idle) {
+            persistence.set(PersistenceState::Saving);
+
+            spawn(async move {
+                match save_logbook(&current).await {
+                    Ok(()) => persistence.set(PersistenceState::Idle),
+                    Err(error) => persistence.set(PersistenceState::Failed(error)),
+                }
+            });
+        }
     });
 
-    logbook
+    (logbook, persistence)
 }
 
 const DATABASE_NAME: &str = "rinnova";
@@ -41,15 +47,16 @@ const DATABASE_VERSION: u32 = 1;
 const LOGBOOK_STORE: &str = "logbook";
 const LOGBOOK_KEY: &str = "current";
 
-async fn open_database() -> Result<Rexie, StorageError> {
-    Ok(Rexie::builder(DATABASE_NAME)
+async fn open_database() -> Result<Rexie, LogbookError> {
+    Rexie::builder(DATABASE_NAME)
         .version(DATABASE_VERSION)
         .add_object_store(ObjectStore::new(LOGBOOK_STORE))
         .build()
-        .await?)
+        .await
+        .map_err(|e| LogbookError::from(&e))
 }
 
-pub async fn load_logbook() -> Result<Logbook, StorageError> {
+pub async fn load_logbook() -> Result<Logbook, LogbookError> {
     let db = open_database().await?;
 
     let tx = db.transaction(&[LOGBOOK_STORE], TransactionMode::ReadOnly)?;
@@ -65,7 +72,7 @@ pub async fn load_logbook() -> Result<Logbook, StorageError> {
     }
 }
 
-pub async fn save_logbook(logbook: &Logbook) -> Result<(), StorageError> {
+pub async fn save_logbook(logbook: &Logbook) -> Result<(), LogbookError> {
     let db = open_database().await?;
 
     let tx = db.transaction(&[LOGBOOK_STORE], TransactionMode::ReadWrite)?;
