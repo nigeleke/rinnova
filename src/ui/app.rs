@@ -20,7 +20,7 @@ pub fn App() -> Element {
 
     use_effect(move || {
         if let PersistenceState::Failed(error) = &*state.read() {
-            Notification::internal_error(&error);
+            Notification::internal_error(error);
         }
     });
 
