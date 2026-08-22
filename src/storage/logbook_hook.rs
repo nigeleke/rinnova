@@ -3,7 +3,9 @@ use rexie::{ObjectStore, Rexie, TransactionMode};
 
 use crate::domain::{Logbook, LogbookError};
 
+#[derive(Clone, Default)]
 pub enum PersistenceState {
+    #[default]
     Loading,
     Idle,
     Saving,
@@ -12,8 +14,10 @@ pub enum PersistenceState {
 
 pub fn use_logbook() -> (Signal<Logbook>, Signal<PersistenceState>) {
     let mut logbook = use_signal(Logbook::default);
-    let mut persistence = use_signal(|| PersistenceState::Loading);
+    let mut persistence = use_signal(PersistenceState::default);
+    let mut generation = use_signal(|| 0u64);
 
+    // Load
     use_resource(move || async move {
         match load_logbook().await {
             Ok(loaded) => {
@@ -24,16 +28,33 @@ pub fn use_logbook() -> (Signal<Logbook>, Signal<PersistenceState>) {
         }
     });
 
+    // Save
     use_effect(move || {
         let current = logbook();
+        let current_generation = *generation.peek();
 
-        if matches!(*persistence.peek(), PersistenceState::Idle) {
+        if matches!(
+            *persistence.peek(),
+            PersistenceState::Idle | PersistenceState::Saving
+        ) {
+            // Order important:
+            // generation must be updated before persistence
+            let this_generation = current_generation + 1;
+            generation.set(this_generation);
             persistence.set(PersistenceState::Saving);
 
             spawn(async move {
                 match save_logbook(&current).await {
-                    Ok(()) => persistence.set(PersistenceState::Idle),
-                    Err(error) => persistence.set(PersistenceState::Failed(error)),
+                    Ok(_) => {
+                        if *generation.peek() == this_generation {
+                            persistence.set(PersistenceState::Idle);
+                        }
+                    }
+                    Err(error) => {
+                        if *generation.peek() == this_generation {
+                            persistence.set(PersistenceState::Failed(error));
+                        }
+                    }
                 }
             });
         }

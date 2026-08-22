@@ -18,21 +18,24 @@ pub fn App() -> Element {
     let (mut logbook, state) = storage::use_logbook();
     provide_context(logbook);
 
+    let mut housekeeping_required = use_signal(|| true);
+    use_effect(move || {
+        let is_idle = matches!(*state.read(), PersistenceState::Idle);
+        if *housekeeping_required.peek() && is_idle {
+            housekeeping_required.set(false);
+            let today = Date::today();
+            logbook.write().housekeeping(today);
+        }
+    });
+
     use_effect(move || {
         if let PersistenceState::Failed(error) = &*state.read() {
             Notification::internal_error(error);
         }
     });
 
-    let mut logbook_snapshot = use_signal(LogbookSnapshot::default);
+    let logbook_snapshot = use_memo(move || LogbookSnapshot::from(&logbook.read(), Date::today()));
     provide_context(ReadSignal::from(logbook_snapshot));
-
-    use_effect(move || {
-        let today = Date::today();
-        logbook.write().housekeeping(today);
-        let snapshot = LogbookSnapshot::from(&logbook.read(), today);
-        logbook_snapshot.set(snapshot);
-    });
 
     let language = i18n::use_preferred_language();
     use_effect(move || {

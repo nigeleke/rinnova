@@ -240,5 +240,6 @@ impl Logbook {
     }
 }
 
+#[coverage(off)]
 #[cfg(test)]
 mod tests;

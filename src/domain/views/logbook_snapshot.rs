@@ -3,7 +3,7 @@ use crate::domain::{
     ScriptItemStatus, ScriptSnapshot, ScriptStatus, SupplyCount,
 };
 
-#[derive(Default)]
+#[derive(Default, PartialEq, Eq)]
 pub struct LogbookSnapshot {
     medications: Vec<MedicationSnapshot>,
     scripts: Vec<ScriptSnapshot>,
@@ -127,5 +127,6 @@ impl LogbookSnapshot {
     }
 }
 
+#[coverage(off)]
 #[cfg(test)]
 mod tests;

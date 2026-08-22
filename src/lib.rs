@@ -1,3 +1,5 @@
+#![feature(coverage_attribute)]
+
 mod application;
 mod domain;
 mod i18n;

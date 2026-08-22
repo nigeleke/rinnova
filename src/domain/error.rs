@@ -2,7 +2,7 @@ use thiserror::*;
 
 use crate::domain::{Date, MedicationId, ScriptId, SupplyId};
 
-#[derive(Debug, Error)]
+#[derive(Clone, Debug, Error)]
 pub enum LogbookError {
     #[error("error.internal-error")]
     IndexedDb,
