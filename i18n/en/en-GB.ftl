@@ -186,3 +186,8 @@ reminders-subtitle =
     .last-repeats = Last repeat
     .script-expiring = Script expiring
 delete-supply = Permanently delete {$supply}?
+
+# -------------------------------------
+# Housekeeping
+housekeeping =
+    .complete = Some of your expired scripts and refills have been removed

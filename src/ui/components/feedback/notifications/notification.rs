@@ -18,8 +18,8 @@ impl Notification {
         self.id
     }
 
-    pub fn _info(message: &str) -> Self {
-        Self::new(NotificationLevel::_Info, message)
+    pub fn info(message: &str) -> Self {
+        Self::new(NotificationLevel::Info, message)
     }
 
     pub fn _success(message: &str) -> Self {
@@ -46,6 +46,11 @@ impl Notification {
 
     pub fn class(&self) -> &'static str {
         self.level.class()
+    }
+
+    pub fn message(key: &str) {
+        let notification = Notification::info(&tid!(key));
+        add_notification(notification);
     }
 
     pub fn storage_error(error: &StorageError) {

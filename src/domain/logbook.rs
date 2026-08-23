@@ -214,7 +214,7 @@ impl Logbook {
             .ok_or_else(|| LogbookError::MedicationNotOnScript(script_id, medication_id))
     }
 
-    pub fn housekeeping(&mut self, as_of: Date) -> Result<(), LogbookError> {
+    pub fn housekeeping(&mut self, as_of: Date) -> Result<bool, LogbookError> {
         let old_script_ids = self
             .scripts()
             .filter_map(|s| {
@@ -238,7 +238,11 @@ impl Logbook {
                 old_script_ids
                     .iter()
                     .try_for_each(|id| self.try_remove_script(*id))
-            })
+            })?;
+
+        let items_deleted = old_supply_ids.len() + old_script_ids.len() > 0;
+
+        Ok(items_deleted)
     }
 }
 

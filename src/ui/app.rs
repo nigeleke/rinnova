@@ -24,8 +24,10 @@ pub fn App() -> Element {
         if *housekeeping_required.peek() && is_idle {
             housekeeping_required.set(false);
             let today = Date::today();
-            if let Err(error) = logbook.write().housekeeping(today) {
-                Notification::logbook_error(&error);
+            match logbook.write().housekeeping(today) {
+                Ok(deleted) if deleted => Notification::message("housekeeping.complete"),
+                Ok(_) => (),
+                Err(error) => Notification::logbook_error(&error),
             }
         }
     });
