@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::domain::{
     Date, LogbookError, Medication, MedicationId, Period, Script, ScriptId, Supply, SupplyId,
+    SupplyItem,
 };
 
 #[derive(Clone, Default, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -180,47 +181,37 @@ impl Logbook {
         let duplicate =
             matches!(validation, Validation::Add) && self.supplies.contains_key(&supply_id);
 
-        let unknown_script = supply
-            .items()
-            .find(|i| self.script(i.script_id()).is_none());
-
-        let out_of_date_script = supply.items().find(|i| {
-            self.script(i.script_id())
-                .is_some_and(|s| !s.is_valid_on(issued_on))
-        });
-
-        let unknown_medication = supply
-            .items()
-            .find(|i| self.medication(i.medication_id()).is_none());
-
-        let invalid_medication = supply.items().find(|i| {
-            match (
-                self.script(i.script_id()),
-                self.medication(i.medication_id()),
-            ) {
-                (Some(script), Some(medication)) => {
-                    !script.items().any(|i| i.medication_id() == medication.id())
-                }
-                (_, _) => false,
-            }
-        });
-
         if duplicate {
-            Err(LogbookError::DuplicateSupply(supply.id()))
-        } else if let Some(item) = unknown_script {
-            Err(LogbookError::InvalidScript(item.script_id()))
-        } else if let Some(item) = out_of_date_script {
-            Err(LogbookError::ScriptOutOfDate(item.script_id()))
-        } else if let Some(item) = unknown_medication {
-            Err(LogbookError::InvalidMedication(item.medication_id()))
-        } else if let Some(item) = invalid_medication {
-            Err(LogbookError::MedicationNotOnScript(
-                item.script_id(),
-                item.medication_id(),
-            ))
+            Err(LogbookError::DuplicateSupply(supply_id))
         } else {
-            Ok(())
+            supply
+                .items()
+                .try_for_each(|item| self.validate_supply_item(item, issued_on))
         }
+    }
+
+    fn validate_supply_item(&self, item: &SupplyItem, issued_on: Date) -> Result<(), LogbookError> {
+        let script_id = item.script_id();
+        let medication_id = item.medication_id();
+
+        let script = self
+            .script(script_id)
+            .ok_or_else(|| LogbookError::InvalidScript(script_id))?;
+
+        script
+            .is_valid_on(issued_on)
+            .then_some(())
+            .ok_or_else(|| LogbookError::ScriptOutOfDate(script_id))?;
+
+        let medication = self
+            .medication(medication_id)
+            .ok_or_else(|| LogbookError::InvalidMedication(medication_id))?;
+
+        script
+            .items()
+            .any(|i| i.medication_id() == medication.id())
+            .then_some(())
+            .ok_or_else(|| LogbookError::MedicationNotOnScript(script_id, medication_id))
     }
 
     pub fn housekeeping(&mut self, as_of: Date) -> Result<(), LogbookError> {
