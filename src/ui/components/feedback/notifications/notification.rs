@@ -1,10 +1,10 @@
 use dioxus::prelude::*;
 use dioxus_i18n::tid;
+use gloo_timers::future::TimeoutFuture;
 
 use crate::domain::LogbookError;
+use crate::storage::StorageError;
 use crate::ui::components::{NotificationId, NotificationLevel};
-
-use gloo_timers::future::TimeoutFuture;
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct Notification {
@@ -48,26 +48,26 @@ impl Notification {
         self.level.class()
     }
 
-    pub fn internal_error(error: &LogbookError) {
-        Self::notify(error);
+    pub fn storage_error(error: &StorageError) {
+        let notification = match error {
+            StorageError::IndexedDb => {
+                let error = tid!("error.internal-error", error: error.to_string());
+                Notification::error(&error)
+            }
+
+            StorageError::Serde => {
+                let error = tid!("error.internal-error", error: error.to_string());
+                Notification::error(&error)
+            }
+        };
+
+        add_notification(notification);
     }
 
-    pub fn notify(error: &LogbookError) {
-        let mut notifications = use_context::<Signal<Vec<Self>>>();
-
+    pub fn logbook_error(error: &LogbookError) {
         let notification = match error {
-            LogbookError::IndexedDb => {
-                let error = tid!("error.internal-error", error: error.to_string());
-                Notification::error(&error)
-            }
-
-            LogbookError::Serde => {
-                let error = tid!("error.internal-error", error: error.to_string());
-                Notification::error(&error)
-            }
-
-            LogbookError::InvalidDate(error) => {
-                let error = tid!("error.invalid-date", error: error.to_string());
+            LogbookError::InvalidDate => {
+                let error = tid!("error.invalid-date");
                 Notification::error(&error)
             }
 
@@ -152,13 +152,7 @@ impl Notification {
             }
         };
 
-        let id = notification.id();
-        notifications.write().push(notification);
-
-        spawn(async move {
-            TimeoutFuture::new(3000).await;
-            notifications.write().retain(|n| n.id() != id);
-        });
+        add_notification(notification);
     }
 }
 
@@ -166,4 +160,16 @@ impl std::fmt::Display for Notification {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.message.fmt(f)
     }
+}
+
+fn add_notification(notification: Notification) {
+    let mut notifications = use_context::<Signal<Vec<Notification>>>();
+
+    let id = notification.id();
+    notifications.write().push(notification);
+
+    spawn(async move {
+        TimeoutFuture::new(3000).await;
+        notifications.write().retain(|n| n.id() != id);
+    });
 }

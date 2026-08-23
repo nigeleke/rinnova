@@ -4,14 +4,8 @@ use crate::domain::{Date, MedicationId, ScriptId, SupplyId};
 
 #[derive(Clone, Debug, Error)]
 pub enum LogbookError {
-    #[error("error.internal-error")]
-    IndexedDb,
-
-    #[error("error.internal-error")]
-    Serde,
-
     #[error("error.invalid-date")]
-    InvalidDate(#[from] jiff::Error),
+    InvalidDate,
 
     #[error("error.matching-medication")]
     MatchingMedication(String),
@@ -60,30 +54,4 @@ pub enum LogbookError {
 
     #[error("error.medication-not-on-script")]
     MedicationNotOnScript(ScriptId, MedicationId),
-}
-
-impl From<&rexie::Error> for LogbookError {
-    fn from(error: &rexie::Error) -> Self {
-        dioxus::prelude::error!("IndexedDB error: {error}");
-        Self::IndexedDb
-    }
-}
-
-impl From<rexie::Error> for LogbookError {
-    fn from(error: rexie::Error) -> Self {
-        Self::from(&error)
-    }
-}
-
-impl From<&serde_wasm_bindgen::Error> for LogbookError {
-    fn from(error: &serde_wasm_bindgen::Error) -> Self {
-        dioxus::prelude::error!("Serialization error: {error}");
-        Self::Serde
-    }
-}
-
-impl From<serde_wasm_bindgen::Error> for LogbookError {
-    fn from(error: serde_wasm_bindgen::Error) -> Self {
-        Self::from(&error)
-    }
 }

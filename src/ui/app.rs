@@ -24,13 +24,15 @@ pub fn App() -> Element {
         if *housekeeping_required.peek() && is_idle {
             housekeeping_required.set(false);
             let today = Date::today();
-            logbook.write().housekeeping(today);
+            if let Err(error) = logbook.write().housekeeping(today) {
+                Notification::logbook_error(&error);
+            }
         }
     });
 
     use_effect(move || {
         if let PersistenceState::Failed(error) = &*state.read() {
-            Notification::internal_error(error);
+            Notification::storage_error(error);
         }
     });
 

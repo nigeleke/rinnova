@@ -19,7 +19,7 @@ impl Date {
 
     pub fn parse_iso8601_str(value: &str) -> Result<Self, LogbookError> {
         use std::str::FromStr;
-        let date = JiffDate::from_str(value)?;
+        let date = JiffDate::from_str(value).map_err(|_| LogbookError::InvalidDate)?;
         Ok(Self(date))
     }
 }

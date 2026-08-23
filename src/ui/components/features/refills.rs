@@ -50,7 +50,9 @@ fn EligibleSupplies() -> Element {
             IssuedOn { }
             EligibleSuppliesList { }
             EligibleSuppliesCommands {
-                on_submit: move |supply| logbook.write().add_supply(supply),
+                on_submit: move |supply| if let Err(error) = logbook.write().try_add_supply(supply) {
+                    Notification::logbook_error(&error);
+                },
             }
         }
     }
@@ -127,7 +129,7 @@ fn EligibleMedicationsList(items: Vec<DraftRefillItem>) -> Element {
             Some(medication) => Some((item, medication.clone())),
             None => {
                 let error = LogbookError::InvalidMedication(item.medication_id);
-                Notification::internal_error(&error);
+                Notification::logbook_error(&error);
                 None
             }
         })
@@ -159,7 +161,7 @@ fn EligibleMedicationsListItem(
         Some(script) => script.remaining_supplies(medication.id()),
         None => {
             let error = LogbookError::InvalidScript(item.script_id);
-            Notification::internal_error(&error);
+            Notification::logbook_error(&error);
             SupplyCount::ZERO
         }
     };
@@ -232,7 +234,7 @@ fn PreviousSupplies() -> Element {
                     message: tid!("delete-supply", supply: supply.to_string()),
                     on_ok: move |_| {
                         if let Err(error) = logbook.write().try_remove_supply(id) {
-                            Notification::internal_error(&error);
+                            Notification::logbook_error(&error);
                         }
                         selected_supply_id.set(None);
                         delete_confirmation.set(None);
@@ -304,7 +306,7 @@ fn PreviousSuppliesMedicationsListItem(item: SupplyItem) -> Element {
         Some(medication) => Some(medication.clone()),
         None => {
             let error = LogbookError::InvalidMedication(medication_id);
-            Notification::internal_error(&error);
+            Notification::logbook_error(&error);
             None
         }
     };
@@ -314,7 +316,7 @@ fn PreviousSuppliesMedicationsListItem(item: SupplyItem) -> Element {
         Some(script) => Some(script.clone()),
         None => {
             let error = LogbookError::InvalidScript(script_id);
-            Notification::internal_error(&error);
+            Notification::logbook_error(&error);
             None
         }
     };

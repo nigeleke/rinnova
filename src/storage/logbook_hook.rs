@@ -1,7 +1,8 @@
 use dioxus::prelude::*;
 use rexie::{ObjectStore, Rexie, TransactionMode};
 
-use crate::domain::{Logbook, LogbookError};
+use crate::domain::Logbook;
+use crate::storage::StorageError;
 
 #[derive(Clone, Default)]
 pub enum PersistenceState {
@@ -9,7 +10,7 @@ pub enum PersistenceState {
     Loading,
     Idle,
     Saving,
-    Failed(LogbookError),
+    Failed(StorageError),
 }
 
 pub fn use_logbook() -> (Signal<Logbook>, Signal<PersistenceState>) {
@@ -68,16 +69,16 @@ const DATABASE_VERSION: u32 = 1;
 const LOGBOOK_STORE: &str = "logbook";
 const LOGBOOK_KEY: &str = "current";
 
-async fn open_database() -> Result<Rexie, LogbookError> {
+async fn open_database() -> Result<Rexie, StorageError> {
     Rexie::builder(DATABASE_NAME)
         .version(DATABASE_VERSION)
         .add_object_store(ObjectStore::new(LOGBOOK_STORE))
         .build()
         .await
-        .map_err(|e| LogbookError::from(&e))
+        .map_err(|e| StorageError::from(&e))
 }
 
-pub async fn load_logbook() -> Result<Logbook, LogbookError> {
+pub async fn load_logbook() -> Result<Logbook, StorageError> {
     let db = open_database().await?;
 
     let tx = db.transaction(&[LOGBOOK_STORE], TransactionMode::ReadOnly)?;
@@ -93,7 +94,7 @@ pub async fn load_logbook() -> Result<Logbook, LogbookError> {
     }
 }
 
-pub async fn save_logbook(logbook: &Logbook) -> Result<(), LogbookError> {
+pub async fn save_logbook(logbook: &Logbook) -> Result<(), StorageError> {
     let db = open_database().await?;
 
     let tx = db.transaction(&[LOGBOOK_STORE], TransactionMode::ReadWrite)?;

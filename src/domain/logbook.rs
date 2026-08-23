@@ -6,7 +6,7 @@ use crate::domain::{
     Date, LogbookError, Medication, MedicationId, Period, Script, ScriptId, Supply, SupplyId,
 };
 
-#[derive(Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Default, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Logbook {
     medications: HashMap<MedicationId, Medication>,
     scripts: HashMap<ScriptId, Script>,
@@ -164,11 +164,16 @@ impl Logbook {
         Ok(())
     }
 
-    fn validate_supply(
-        &mut self,
-        supply: &Supply,
-        validation: Validation,
-    ) -> Result<(), LogbookError> {
+    // Note: no try_update_supply...
+
+    pub fn try_remove_supply(&mut self, id: SupplyId) -> Result<(), LogbookError> {
+        match self.supplies.remove(&id) {
+            Some(_) => Ok(()),
+            None => Err(LogbookError::InvalidSupply(id)),
+        }
+    }
+
+    fn validate_supply(&self, supply: &Supply, validation: Validation) -> Result<(), LogbookError> {
         let supply_id = supply.id();
         let issued_on = supply.issued_on();
 
@@ -218,19 +223,7 @@ impl Logbook {
         }
     }
 
-    pub fn add_supply(&mut self, supply: Supply) {
-        self.try_add_supply(supply)
-            .expect("supply should have been recorded");
-    }
-
-    pub fn try_remove_supply(&mut self, id: SupplyId) -> Result<(), LogbookError> {
-        match self.supplies.remove(&id) {
-            Some(_) => Ok(()),
-            None => Err(LogbookError::InvalidSupply(id)),
-        }
-    }
-
-    pub fn housekeeping(&mut self, as_of: Date) {
+    pub fn housekeeping(&mut self, as_of: Date) -> Result<(), LogbookError> {
         let old_script_ids = self
             .scripts()
             .filter_map(|s| {
@@ -247,14 +240,14 @@ impl Logbook {
             })
             .collect::<HashSet<_>>();
 
-        let _ = old_supply_ids
+        old_supply_ids
             .iter()
             .try_for_each(|id| self.try_remove_supply(*id))
             .and_then(|_| {
                 old_script_ids
                     .iter()
                     .try_for_each(|id| self.try_remove_script(*id))
-            });
+            })
     }
 }
 

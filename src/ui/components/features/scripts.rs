@@ -43,7 +43,7 @@ pub fn Scripts() -> Element {
                         }
                         None => {
                             let error = LogbookError::InvalidScript(id);
-                            Notification::internal_error(&error);
+                            Notification::logbook_error(&error);
                         }
                     }
                 },
@@ -63,7 +63,7 @@ pub fn Scripts() -> Element {
                                     None => logbook.write().try_add_script(script),
                                 }
                             }) {
-                                Notification::notify(&error);
+                                Notification::logbook_error(&error);
                             }
                             draft.set(None);
                         },
@@ -79,7 +79,7 @@ pub fn Scripts() -> Element {
                     message: tid!("delete-script", script: script.to_string()),
                     on_ok: move |_| {
                         if let Err(error) = logbook.write().try_remove_script(id) {
-                            Notification::notify(&error);
+                            Notification::logbook_error(&error);
                         }
                         draft.set(None);
                         selected_script_id.set(None);
