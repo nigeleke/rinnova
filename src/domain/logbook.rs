@@ -13,6 +13,11 @@ pub struct Logbook {
     supplies: HashMap<SupplyId, Supply>,
 }
 
+enum Validation {
+    Add,
+    Update,
+}
+
 impl Logbook {
     pub fn medications(&self) -> impl Iterator<Item = &Medication> {
         self.medications.values()
@@ -22,65 +27,63 @@ impl Logbook {
         self.medications.get(&id)
     }
 
-    pub fn is_medication_immutable(&self, id: MedicationId) -> bool {
-        self.scripts
-            .values()
-            .any(|s| s.items().any(|i| i.medication_id() == id))
-    }
-
     pub fn try_add_medication(&mut self, medication: Medication) -> Result<(), LogbookError> {
         let id = medication.id();
-        match self.medications.get(&id) {
-            Some(m) => Err(LogbookError::DuplicateMedication(m.id())),
-            None => {
-                if let Some(m) = self
-                    .medications
-                    .values()
-                    .find(|m| m.equivalent_to(&medication))
-                {
-                    Err(LogbookError::MatchingMedication(String::from(m.name())))
-                } else {
-                    self.medications.insert(id, medication);
-                    Ok(())
-                }
-            }
-        }
+        self.validate_medication(&medication, Validation::Add)?;
+        self.medications.insert(id, medication);
+        Ok(())
     }
 
     pub fn try_update_medication(&mut self, medication: Medication) -> Result<(), LogbookError> {
-        let medication_id = medication.id();
+        let id = medication.id();
 
-        if let Some(existing) = self.medications.get_mut(&medication_id) {
-            *existing = medication;
-            Ok(())
+        if self.is_medication_immutable(id) {
+            Err(LogbookError::MedicationUsedInScript)
         } else {
-            Err(LogbookError::InvalidMedication(medication_id))
+            self.validate_medication(&medication, Validation::Update)?;
+            self.medications
+                .get_mut(&id)
+                .map(|existing| *existing = medication)
+                .ok_or(LogbookError::InvalidMedication(id))
         }
     }
 
     pub fn try_remove_medication(&mut self, id: MedicationId) -> Result<(), LogbookError> {
-        let is_referenced = || {
-            let script_reference = self
-                .scripts
-                .values()
-                .flat_map(Script::items)
-                .any(|item| item.medication_id() == id);
-            let supply_reference = self
-                .supplies
-                .values()
-                .flat_map(Supply::items)
-                .any(|item| item.medication_id() == id);
-            script_reference || supply_reference
-        };
-
-        match self.medications.get(&id) {
-            None => Err(LogbookError::InvalidMedication(id)),
-            Some(_) if is_referenced() => Err(LogbookError::MedicationUsedInScript),
-            _ => {
-                self.medications.remove(&id);
-                Ok(())
-            }
+        if self.is_medication_immutable(id) {
+            Err(LogbookError::MedicationUsedInScript)
+        } else {
+            self.medications
+                .remove(&id)
+                .map(|_| ())
+                .ok_or(LogbookError::InvalidMedication(id))
         }
+    }
+
+    fn validate_medication(
+        &self,
+        medication: &Medication,
+        validation: Validation,
+    ) -> Result<(), LogbookError> {
+        let duplicate = matches!(validation, Validation::Add)
+            && self.medications.contains_key(&medication.id());
+
+        let matching = self.medications.values().find(|existing| {
+            existing.id() != medication.id() && existing.equivalent_to(medication)
+        });
+
+        if duplicate {
+            Err(LogbookError::DuplicateMedication(medication.id()))
+        } else if let Some(existing) = matching {
+            Err(LogbookError::MatchingMedication(existing.name().to_owned()))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn is_medication_immutable(&self, id: MedicationId) -> bool {
+        self.scripts
+            .values()
+            .any(|s| s.items().any(|i| i.medication_id() == id))
     }
 
     pub fn scripts(&self) -> impl Iterator<Item = &Script> {
@@ -91,58 +94,59 @@ impl Logbook {
         self.scripts.get(&id)
     }
 
-    pub fn is_script_immutable(&self, id: ScriptId) -> bool {
-        self.supplies
-            .values()
-            .any(|s| s.items().any(|i| i.script_id() == id))
-    }
-
     pub fn try_add_script(&mut self, script: Script) -> Result<(), LogbookError> {
         let id = script.id();
-        match self.scripts.get(&id) {
-            Some(s) => Err(LogbookError::DuplicateScript(s.id())),
-            None => {
-                let unknown_medication = script
-                    .items()
-                    .find(|i| self.medication(i.medication_id()).is_none());
-
-                if let Some(item) = unknown_medication {
-                    Err(LogbookError::UnknownMedication(item.medication_id()))
-                } else {
-                    self.scripts.insert(id, script);
-                    Ok(())
-                }
-            }
-        }
+        self.validate_script(&script, Validation::Add)?;
+        self.scripts.insert(id, script);
+        Ok(())
     }
 
     pub fn try_update_script(&mut self, script: Script) -> Result<(), LogbookError> {
-        let script_id = script.id();
+        let id = script.id();
 
-        if let Some(existing) = self.scripts.get_mut(&script_id) {
-            *existing = script;
-            Ok(())
+        if self.is_script_immutable(id) {
+            Err(LogbookError::ScriptUsedInSupply)
         } else {
-            Err(LogbookError::InvalidScript(script_id))
+            self.validate_script(&script, Validation::Update)?;
+            self.scripts
+                .get_mut(&id)
+                .map(|existing| *existing = script)
+                .ok_or(LogbookError::InvalidScript(id))
         }
     }
 
     pub fn try_remove_script(&mut self, id: ScriptId) -> Result<(), LogbookError> {
-        let is_referenced = || {
-            self.supplies
-                .values()
-                .flat_map(Supply::items)
-                .any(|item| item.script_id() == id)
-        };
-
-        match self.scripts.get(&id) {
-            None => Err(LogbookError::InvalidScript(id)),
-            Some(_) if is_referenced() => Err(LogbookError::ScriptUsedInSupply),
-            Some(_) => {
-                self.scripts.remove(&id);
-                Ok(())
-            }
+        if self.is_script_immutable(id) {
+            Err(LogbookError::ScriptUsedInSupply)
+        } else {
+            self.scripts
+                .remove(&id)
+                .map(|_| ())
+                .ok_or(LogbookError::InvalidScript(id))
         }
+    }
+
+    fn validate_script(&self, script: &Script, validation: Validation) -> Result<(), LogbookError> {
+        let duplicate =
+            matches!(validation, Validation::Add) && self.scripts.contains_key(&script.id());
+
+        let unknown_medication = script
+            .items()
+            .find(|i| self.medication(i.medication_id()).is_none());
+
+        if duplicate {
+            Err(LogbookError::DuplicateScript(script.id()))
+        } else if let Some(item) = unknown_medication {
+            Err(LogbookError::UnknownMedication(item.medication_id()))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn is_script_immutable(&self, id: ScriptId) -> bool {
+        self.supplies
+            .values()
+            .any(|s| s.items().any(|i| i.script_id() == id))
     }
 
     pub fn supplies(&self) -> impl Iterator<Item = &Supply> {
@@ -154,50 +158,64 @@ impl Logbook {
     }
 
     pub fn try_add_supply(&mut self, supply: Supply) -> Result<(), LogbookError> {
-        let supply_id = supply.id();
-        match self.supplies.get(&supply_id) {
-            Some(_) => Err(LogbookError::DuplicateSupply(supply_id)),
-            None => self.validate_and_add_supply(supply),
-        }
-    }
-
-    fn validate_and_add_supply(&mut self, supply: Supply) -> Result<(), LogbookError> {
-        let supply_id = supply.id();
-        let issued_on = supply.issued_on();
-
-        supply.items().try_for_each(|i| {
-            let script_id = i.script_id();
-            let medication_id = i.medication_id();
-
-            let valid_script = self.require_script(script_id)?;
-
-            valid_script
-                .is_valid_on(issued_on)
-                .ok_or(LogbookError::ScriptOutOfDate(script_id))?;
-
-            self.require_medication(medication_id)?;
-
-            valid_script
-                .item(medication_id)
-                .ok_or(LogbookError::MedicationNotOnScript(
-                    script_id,
-                    medication_id,
-                ))?;
-
-            Ok::<_, LogbookError>(())
-        })?;
-
-        self.supplies.insert(supply_id, supply);
+        let id = supply.id();
+        self.validate_supply(&supply, Validation::Add)?;
+        self.supplies.insert(id, supply);
         Ok(())
     }
 
-    fn require_medication(&self, id: MedicationId) -> Result<&Medication, LogbookError> {
-        self.medication(id)
-            .ok_or(LogbookError::InvalidMedication(id))
-    }
+    fn validate_supply(
+        &mut self,
+        supply: &Supply,
+        validation: Validation,
+    ) -> Result<(), LogbookError> {
+        let supply_id = supply.id();
+        let issued_on = supply.issued_on();
 
-    fn require_script(&self, id: ScriptId) -> Result<&Script, LogbookError> {
-        self.script(id).ok_or(LogbookError::InvalidScript(id))
+        let duplicate =
+            matches!(validation, Validation::Add) && self.supplies.contains_key(&supply_id);
+
+        let unknown_script = supply
+            .items()
+            .find(|i| self.script(i.script_id()).is_none());
+
+        let out_of_date_script = supply.items().find(|i| {
+            self.script(i.script_id())
+                .is_some_and(|s| !s.is_valid_on(issued_on))
+        });
+
+        let unknown_medication = supply
+            .items()
+            .find(|i| self.medication(i.medication_id()).is_none());
+
+        let invalid_medication = supply.items().find(|i| {
+            match (
+                self.script(i.script_id()),
+                self.medication(i.medication_id()),
+            ) {
+                (Some(script), Some(medication)) => {
+                    !script.items().any(|i| i.medication_id() == medication.id())
+                }
+                (_, _) => false,
+            }
+        });
+
+        if duplicate {
+            Err(LogbookError::DuplicateSupply(supply.id()))
+        } else if let Some(item) = unknown_script {
+            Err(LogbookError::InvalidScript(item.script_id()))
+        } else if let Some(item) = out_of_date_script {
+            Err(LogbookError::ScriptOutOfDate(item.script_id()))
+        } else if let Some(item) = unknown_medication {
+            Err(LogbookError::InvalidMedication(item.medication_id()))
+        } else if let Some(item) = invalid_medication {
+            Err(LogbookError::MedicationNotOnScript(
+                item.script_id(),
+                item.medication_id(),
+            ))
+        } else {
+            Ok(())
+        }
     }
 
     pub fn add_supply(&mut self, supply: Supply) {
