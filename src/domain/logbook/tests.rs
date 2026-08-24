@@ -11,7 +11,8 @@ fn medication_can_be_added() {
 #[test]
 fn notionally_equivalent_medication_cannot_be_added() {
     let mut fixture = Fixture::new().medication("med01");
-    let medication = Medication::new("MED01", "STRENGTH", "others notes");
+    let medication = Medication::try_new("MED01", "STRENGTH", "others notes")
+        .expect("medication should be created");
 
     let result = fixture.logbook.try_add_medication(medication);
     assert!(matches!(result, Err(LogbookError::MatchingMedication(_))));
@@ -39,7 +40,8 @@ fn medication_can_be_readded_after_being_removed() {
         .try_remove_medication(id)
         .expect("medication should be removed");
 
-    let replacement = Medication::new("med01", "strength", "notes");
+    let replacement =
+        Medication::try_new("med01", "strength", "notes").expect("medication should be created");
     let replacement_id = replacement.id();
 
     fixture
@@ -56,7 +58,8 @@ fn non_existing_medication_cannot_be_removed() {
     let mut fixture = Fixture::new().medication("med01");
     let id = fixture.medication_id("med01");
 
-    let unknown = Medication::new("med01", "strength", "notes");
+    let unknown =
+        Medication::try_new("med01", "strength", "notes").expect("medication should be created");
     let unknown_id = unknown.id();
 
     let result = fixture.logbook.try_remove_medication(unknown_id);

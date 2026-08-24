@@ -43,7 +43,8 @@ impl Fixture {
     }
 
     pub fn medication_with(mut self, name: &'static str, strength: &str, notes: &str) -> Self {
-        let medication = Medication::new(name, strength, notes);
+        let medication =
+            Medication::try_new(name, strength, notes).expect("medication should be created");
         let id = medication.id();
         self.logbook
             .try_add_medication(medication)
@@ -170,7 +171,7 @@ impl Fixture {
             })
             .collect::<Vec<_>>();
 
-        Supply::new(issued_on, &items)
+        Supply::try_new(issued_on, &items).expect("supply should be created")
     }
 
     pub fn has_supply(&self, id: SupplyId) -> bool {

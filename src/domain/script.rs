@@ -36,8 +36,6 @@ impl Script {
         expires_on: Date,
         items: &[ScriptItem],
     ) -> Result<Self, LogbookError> {
-        Self::validate(issued_on, expires_on, items)?;
-
         let items = HashSet::from_iter(items.iter().copied());
 
         let script = Self {
@@ -47,27 +45,7 @@ impl Script {
             items,
         };
 
-        Ok(script)
-    }
-
-    fn validate(
-        issued_on: Date,
-        expires_on: Date,
-        items: &[ScriptItem],
-    ) -> Result<(), LogbookError> {
-        let mut seen = HashSet::new();
-
-        let medication_ids = items.iter().map(|i| i.medication_id()).collect::<Vec<_>>();
-
-        if expires_on <= issued_on {
-            Err(LogbookError::InvalidExpiryDate(expires_on))
-        } else if medication_ids.is_empty() {
-            Err(LogbookError::NoMedications)
-        } else if let Some(id) = medication_ids.iter().find(|id| !seen.insert(*id)) {
-            Err(LogbookError::DuplicateMedication(*id))
-        } else {
-            Ok(())
-        }
+        validate(script)
     }
 
     pub fn id(&self) -> ScriptId {
@@ -108,5 +86,25 @@ impl std::fmt::Display for Script {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let description = tid!("script-description", issued_on: self.issued_on.to_string(), expires_on: self.expires_on.to_string(), item_count: self.items.len());
         description.fmt(f)
+    }
+}
+
+fn validate(script: Script) -> Result<Script, LogbookError> {
+    let invalid_date_range = script.issued_on() > script.expires_on();
+
+    let medication_ids = script
+        .items()
+        .map(|i| i.medication_id())
+        .collect::<Vec<_>>();
+    let mut seen = HashSet::new();
+
+    if invalid_date_range {
+        Err(LogbookError::InvalidDateRange)
+    } else if medication_ids.is_empty() {
+        Err(LogbookError::NoMedications)
+    } else if let Some(id) = medication_ids.iter().find(|id| !seen.insert(*id)) {
+        Err(LogbookError::DuplicateMedication(*id))
+    } else {
+        Ok(script)
     }
 }

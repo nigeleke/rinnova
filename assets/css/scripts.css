@@ -14,7 +14,7 @@
 
 .scripts__list-item {
     padding: 0.25rem;
-    border: 1px solid transparent color-mix(in srgb, var(--panel-background-color) 90%, black);
+    border: 2px solid transparent color-mix(in srgb, var(--panel-background-color) 90%, black);
     span {
         min-block-size: 0;
         overflow: hidden;
@@ -32,7 +32,7 @@
 }
 
 .scripts__list-item.selected {
-    border: 1px solid color-mix(in srgb, var(--panel-background-color) 70%, black);;
+    border: 2px solid color-mix(in srgb, var(--panel-background-color) 70%, black);;
 }
 
 .scripts__medications__list {

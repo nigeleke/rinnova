@@ -49,28 +49,24 @@ impl DraftScript {
         self
     }
 
-    pub fn is_valid(&self) -> bool {
-        let issued_before_expires = self.issued_on < self.expires_on;
-        let selected_items = self.items.iter().filter(|i| i.selected);
-        issued_before_expires && selected_items.count() > 0
+    pub fn try_into_script(self) -> Result<Script, LogbookError> {
+        let issued_on = self.issued_on;
+        let expires_on = self.expires_on;
+
+        let items = self
+            .items
+            .into_iter()
+            .filter_map(|i| i.selected.then_some(i.into_script_item()))
+            .collect::<Vec<_>>();
+
+        match self.id {
+            Some(id) => Script::try_new_with_id(id, issued_on, expires_on, &items.as_slice()),
+            None => Script::try_new(issued_on, expires_on, &items),
+        }
     }
 
-    pub fn try_into_script(self) -> Result<Script, LogbookError> {
-        if self.is_valid() {
-            let issued_on = self.issued_on;
-            let expires_on = self.expires_on;
-            let items = self
-                .items
-                .into_iter()
-                .filter_map(|i| i.selected.then_some(i.into_script_item()))
-                .collect::<Vec<_>>();
-            match self.id {
-                Some(id) => Script::try_new_with_id(id, issued_on, expires_on, &items),
-                None => Script::try_new(issued_on, expires_on, &items),
-            }
-        } else {
-            Err(LogbookError::InvalidDraftScript)
-        }
+    pub fn is_valid(&self) -> bool {
+        self.clone().try_into_script().is_ok()
     }
 
     pub fn update_item(&mut self, item: DraftScriptItem) {

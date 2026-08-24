@@ -6,6 +6,8 @@ pub use id::MedicationId;
 use dioxus_i18n::tid;
 use serde::{Deserialize, Serialize};
 
+use crate::domain::LogbookError;
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Medication {
     id: MedicationId,
@@ -15,21 +17,29 @@ pub struct Medication {
 }
 
 impl Medication {
-    pub fn new(name: &str, strength: &str, notes: &str) -> Self {
+    pub fn try_new(name: &str, strength: &str, notes: &str) -> Result<Self, LogbookError> {
         let id = MedicationId::new();
-        Self::with_id(id, name, strength, notes)
+        Self::try_new_with_id(id, name, strength, notes)
     }
 
-    pub fn with_id(id: MedicationId, name: &str, strength: &str, notes: &str) -> Self {
+    pub fn try_new_with_id(
+        id: MedicationId,
+        name: &str,
+        strength: &str,
+        notes: &str,
+    ) -> Result<Self, LogbookError> {
         let name = name.trim().to_owned();
         let strength = strength.trim().to_owned();
         let notes = notes.to_owned();
-        Self {
+
+        let medication = Self {
             id,
             name,
             strength,
             notes,
-        }
+        };
+
+        validate(medication)
     }
 
     pub fn id(&self) -> MedicationId {
@@ -67,5 +77,13 @@ impl std::fmt::Display for Medication {
         };
 
         description.fmt(f)
+    }
+}
+
+fn validate(medication: Medication) -> Result<Medication, LogbookError> {
+    if medication.name.is_empty() {
+        Err(LogbookError::InvalidMedication(medication.id()))
+    } else {
+        Ok(medication)
     }
 }

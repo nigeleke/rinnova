@@ -70,89 +70,91 @@ impl Notification {
     }
 
     pub fn logbook_error(error: &LogbookError) {
+        let i18n_key = error.to_string();
+
         let notification = match error {
             LogbookError::InvalidDate => {
-                let error = tid!("error.invalid-date");
+                let error = tid!(&i18n_key);
                 Notification::error(&error)
             }
 
+            LogbookError::InvalidDateRange => {
+                let error = tid!(&i18n_key);
+                Notification::warning(&error)
+            }
+
             LogbookError::MatchingMedication(value) => {
-                let error = tid!("error.matching-medication", name: value);
+                let error = tid!(&i18n_key, name: value);
                 Notification::warning(&error)
             }
 
             LogbookError::DuplicateMedication(id) => {
-                let error = tid!("error.duplicate-medication", id: id.to_string());
+                let error = tid!(&i18n_key, id: id.to_string());
                 Notification::error(&error)
             }
 
             LogbookError::InvalidMedication(id) => {
-                let error = tid!("error.invalid-medication", id: id.to_string());
-                Notification::error(&error)
-            }
-
-            LogbookError::InvalidDraftMedication => {
-                let error = tid!("error.invalid-draft-medication");
+                let error = tid!(&i18n_key, id: id.to_string());
                 Notification::error(&error)
             }
 
             LogbookError::MedicationUsedInScript => {
-                let error = tid!("error.medication-used-in-script");
-                Notification::warning(&error)
-            }
-
-            LogbookError::InvalidExpiryDate(date) => {
-                let error = tid!("error.invalid-expiry-date", date: date.to_string());
+                let error = tid!(&i18n_key);
                 Notification::warning(&error)
             }
 
             LogbookError::NoMedications => {
-                let error = tid!("error.no-medications");
+                let error = tid!(&i18n_key);
                 Notification::warning(&error)
             }
 
             LogbookError::DuplicateScript(id) => {
-                let error = tid!("error.duplicate-script", id: id.to_string());
+                let error = tid!(&i18n_key, id: id.to_string());
                 Notification::error(&error)
             }
 
             LogbookError::InvalidScript(id) => {
-                let error = tid!("error.invalid-script", id: id.to_string());
-                Notification::error(&error)
-            }
-
-            LogbookError::InvalidDraftScript => {
-                let error = tid!("error.invalid-draft-script");
+                let error = tid!(&i18n_key, id: id.to_string());
                 Notification::error(&error)
             }
 
             LogbookError::ScriptUsedInSupply => {
-                let error = tid!("error.script-used-in-supply");
+                let error = tid!(&i18n_key);
                 Notification::warning(&error)
             }
 
             LogbookError::UnknownMedication(id) => {
-                let error = tid!("error.unknown-medication", id: id.to_string());
+                let error = tid!(&i18n_key, id: id.to_string());
                 Notification::error(&error)
             }
 
             LogbookError::DuplicateSupply(id) => {
-                let error = tid!("error.duplicate-supply", id: id.to_string());
+                let error = tid!(&i18n_key, id: id.to_string());
                 Notification::error(&error)
             }
 
             LogbookError::InvalidSupply(id) => {
-                let error = tid!("error.invalid-supply", id: id.to_string());
+                let error = tid!(&i18n_key, id: id.to_string());
                 Notification::error(&error)
             }
 
             LogbookError::ScriptOutOfDate(id) => {
-                let error = tid!("error.script-out-of-date", id: id.to_string());
+                let error = tid!(&i18n_key, id: id.to_string());
                 Notification::error(&error)
             }
 
+            LogbookError::SupplyHasNoMedications => {
+                let error = tid!(&i18n_key);
+                Notification::warning(&error)
+            }
+
+            LogbookError::SupplyHasDuplicateMedications => {
+                let error = tid!(&i18n_key);
+                Notification::warning(&error)
+            }
+
             LogbookError::MedicationNotOnScript(script_id, medication_id) => {
-                let error = tid!("error.medication-not-on-script", script_id: script_id.to_string(), medication_id: medication_id.to_string());
+                let error = tid!(&i18n_key, script_id: script_id.to_string(), medication_id: medication_id.to_string());
                 Notification::error(&error)
             }
         };

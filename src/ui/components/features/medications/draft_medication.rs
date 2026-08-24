@@ -9,20 +9,15 @@ pub struct DraftMedication {
 }
 
 impl DraftMedication {
-    pub fn is_valid(&self) -> bool {
-        !self.name.trim().is_empty()
+    pub fn try_into_medication(self) -> Result<Medication, LogbookError> {
+        match self.id {
+            Some(id) => Medication::try_new_with_id(id, &self.name, &self.strength, &self.notes),
+            None => Medication::try_new(&self.name, &self.strength, &self.notes),
+        }
     }
 
-    pub fn try_into_medication(self) -> Result<Medication, LogbookError> {
-        if self.is_valid() {
-            let medication = match self.id {
-                Some(id) => Medication::with_id(id, &self.name, &self.strength, &self.notes),
-                None => Medication::new(&self.name, &self.strength, &self.notes),
-            };
-            Ok(medication)
-        } else {
-            Err(LogbookError::InvalidDraftMedication)
-        }
+    pub fn is_valid(&self) -> bool {
+        self.clone().try_into_medication().is_ok()
     }
 }
 

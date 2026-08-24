@@ -1,11 +1,14 @@
 use thiserror::*;
 
-use crate::domain::{Date, MedicationId, ScriptId, SupplyId};
+use crate::domain::{MedicationId, ScriptId, SupplyId};
 
 #[derive(Clone, Debug, Error)]
 pub enum LogbookError {
     #[error("error.invalid-date")]
     InvalidDate,
+
+    #[error("error.invalid-date-range")]
+    InvalidDateRange,
 
     #[error("error.matching-medication")]
     MatchingMedication(String),
@@ -16,14 +19,8 @@ pub enum LogbookError {
     #[error("error.invalid-medication")]
     InvalidMedication(MedicationId),
 
-    #[error("error.invalid-draft-medication")]
-    InvalidDraftMedication,
-
     #[error("error.medication-used-in-script")]
     MedicationUsedInScript,
-
-    #[error("error.invalid-expiry-date")]
-    InvalidExpiryDate(Date),
 
     #[error("error.no-medications")]
     NoMedications,
@@ -33,9 +30,6 @@ pub enum LogbookError {
 
     #[error("error.invalid-script")]
     InvalidScript(ScriptId),
-
-    #[error("error.invalid-draft-script")]
-    InvalidDraftScript,
 
     #[error("error.script-used-in-supply")]
     ScriptUsedInSupply,
@@ -51,6 +45,12 @@ pub enum LogbookError {
 
     #[error("error.script-out-of-date")]
     ScriptOutOfDate(ScriptId),
+
+    #[error("error.supply-has-no-medications")]
+    SupplyHasNoMedications,
+
+    #[error("error.supply-has-duplicate-medications")]
+    SupplyHasDuplicateMedications,
 
     #[error("error.medication-not-on-script")]
     MedicationNotOnScript(ScriptId, MedicationId),

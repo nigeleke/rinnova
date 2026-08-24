@@ -203,8 +203,10 @@ fn EligibleSuppliesCommands(on_submit: EventHandler<Supply>) -> Element {
             aria_label: tid!("dispensed-button.aria-label"),
             disabled: draft.read().selected_items().count() == 0,
             onclick: move |_| {
-                let supply = draft.read().as_supply();
-                on_submit.call(supply);
+                match draft.read().try_into_supply() {
+                    Ok(supply) => on_submit.call(supply),
+                    Err(error) => Notification::logbook_error(&error),
+                 }
             },
             {tid!("dispensed-button.text")}
         }

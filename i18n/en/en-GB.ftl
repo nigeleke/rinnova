@@ -22,6 +22,7 @@ remaining-supplies = {$n} remaining
 error =
     .internal-error = Internal error: IndexedDb {$error}
     .invalid-date = Invalid date
+    .invalid-date-range = Invalid date range
     .matching-medication = Medication {$name} previously added
     .duplicate-medication = Duplicated {$id}
     .invalid-medication = Invalid {$id}

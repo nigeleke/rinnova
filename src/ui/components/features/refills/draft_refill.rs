@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::domain::{
-    Date, ScriptId, ScriptSnapshot, ScriptStatus, Supply, SupplyCount, SupplyItem,
+    Date, LogbookError, ScriptId, ScriptSnapshot, ScriptStatus, Supply, SupplyCount, SupplyItem,
 };
 
 use super::DraftRefillItem;
@@ -46,7 +46,7 @@ impl DraftRefill {
         }
     }
 
-    pub fn as_supply(&self) -> Supply {
+    pub fn try_into_supply(&self) -> Result<Supply, LogbookError> {
         let issued_on = self.issued_on;
 
         let items = self
@@ -58,7 +58,7 @@ impl DraftRefill {
             })
             .collect::<Vec<_>>();
 
-        Supply::new(issued_on, &items)
+        Supply::try_new(issued_on, &items)
     }
 }
 

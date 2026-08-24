@@ -9,8 +9,9 @@ pub use item::SupplyItem;
 // ------------------------------------
 use dioxus_i18n::tid;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 
-use crate::domain::{Date, MedicationId, ScriptId};
+use crate::domain::{Date, LogbookError, MedicationId, ScriptId};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Supply {
@@ -20,15 +21,17 @@ pub struct Supply {
 }
 
 impl Supply {
-    pub fn new(issued_on: Date, items: &[SupplyItem]) -> Self {
+    pub fn try_new(issued_on: Date, items: &[SupplyItem]) -> Result<Self, LogbookError> {
         let id = SupplyId::new();
         let items = Vec::from(items);
 
-        Self {
+        let supply = Self {
             id,
             issued_on,
             items,
-        }
+        };
+
+        validate(supply)
     }
 
     pub fn id(&self) -> SupplyId {
@@ -54,5 +57,17 @@ impl std::fmt::Display for Supply {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let description = tid!("supply-description", issued_on: self.issued_on.to_string());
         description.fmt(f)
+    }
+}
+
+fn validate(supply: Supply) -> Result<Supply, LogbookError> {
+    let items = supply.items.iter().collect::<HashSet<_>>();
+
+    if supply.items.is_empty() {
+        Err(LogbookError::SupplyHasNoMedications)
+    } else if items.len() != supply.items.len() {
+        Err(LogbookError::SupplyHasDuplicateMedications)
+    } else {
+        Ok(supply)
     }
 }

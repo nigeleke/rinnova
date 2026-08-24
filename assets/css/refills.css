@@ -47,8 +47,12 @@
     overflow: auto;
 }
 
+.refills__previous-supplies__scripts-list-item {
+    border: 2px solid transparent color-mix(in srgb, var(--panel-background-color) 90%, black);
+}
+
 .refills__previous-supplies__scripts-list-item.selected {
-    border: 1px solid color-mix(in srgb, var(--panel-background-color) 70%, black);;
+    border: 2px solid color-mix(in srgb, var(--panel-background-color) 70%, black);;
 }
 
 .refills__previous-supplies__medications-list {
