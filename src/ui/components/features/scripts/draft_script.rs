@@ -60,7 +60,7 @@ impl DraftScript {
             .collect::<Vec<_>>();
 
         match self.id {
-            Some(id) => Script::try_new_with_id(id, issued_on, expires_on, &items.as_slice()),
+            Some(id) => Script::try_new_with_id(id, issued_on, expires_on, &items),
             None => Script::try_new(issued_on, expires_on, &items),
         }
     }

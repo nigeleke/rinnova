@@ -196,22 +196,25 @@ impl Logbook {
 
         let script = self
             .script(script_id)
-            .ok_or_else(|| LogbookError::ScriptNotFound(script_id))?;
+            .ok_or(LogbookError::ScriptNotFound(script_id))?;
 
         script
             .is_valid_on(issued_on)
             .then_some(())
-            .ok_or_else(|| LogbookError::ScriptOutOfDate(script_id))?;
+            .ok_or(LogbookError::ScriptOutOfDate(script_id))?;
 
         let medication = self
             .medication(medication_id)
-            .ok_or_else(|| LogbookError::MedicationNotFound(medication_id))?;
+            .ok_or(LogbookError::MedicationNotFound(medication_id))?;
 
         script
             .items()
             .any(|i| i.medication_id() == medication.id())
             .then_some(())
-            .ok_or_else(|| LogbookError::MedicationNotOnScript(script_id, medication_id))
+            .ok_or(LogbookError::MedicationNotOnScript(
+                script_id,
+                medication_id,
+            ))
     }
 
     pub fn housekeeping(&mut self, as_of: Date) -> Result<bool, LogbookError> {
