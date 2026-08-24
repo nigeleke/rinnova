@@ -42,7 +42,7 @@ pub fn Scripts() -> Element {
                             draft.set(Some(update));
                         }
                         None => {
-                            let error = LogbookError::InvalidScript(id);
+                            let error = LogbookError::ScriptNotFound(id);
                             Notification::logbook_error(&error);
                         }
                     }

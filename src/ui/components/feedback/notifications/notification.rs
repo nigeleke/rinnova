@@ -54,18 +54,8 @@ impl Notification {
     }
 
     pub fn storage_error(error: &StorageError) {
-        let notification = match error {
-            StorageError::IndexedDb => {
-                let error = tid!("error.internal-error", error: error.to_string());
-                Notification::error(&error)
-            }
-
-            StorageError::Serde => {
-                let error = tid!("error.internal-error", error: error.to_string());
-                Notification::error(&error)
-            }
-        };
-
+        let error = tid!("error.unexpected-error", error: error.to_string());
+        let notification = Notification::error(&error);
         add_notification(notification);
     }
 
@@ -93,7 +83,7 @@ impl Notification {
                 Notification::error(&error)
             }
 
-            LogbookError::InvalidMedication(id) => {
+            LogbookError::MedicationNotFound(id) => {
                 let error = tid!(&i18n_key, id: id.to_string());
                 Notification::error(&error)
             }
@@ -113,7 +103,7 @@ impl Notification {
                 Notification::error(&error)
             }
 
-            LogbookError::InvalidScript(id) => {
+            LogbookError::ScriptNotFound(id) => {
                 let error = tid!(&i18n_key, id: id.to_string());
                 Notification::error(&error)
             }
@@ -133,7 +123,7 @@ impl Notification {
                 Notification::error(&error)
             }
 
-            LogbookError::InvalidSupply(id) => {
+            LogbookError::SupplyNotFound(id) => {
                 let error = tid!(&i18n_key, id: id.to_string());
                 Notification::error(&error)
             }
@@ -144,11 +134,6 @@ impl Notification {
             }
 
             LogbookError::SupplyHasNoMedications => {
-                let error = tid!(&i18n_key);
-                Notification::warning(&error)
-            }
-
-            LogbookError::SupplyHasDuplicateMedications => {
                 let error = tid!(&i18n_key);
                 Notification::warning(&error)
             }

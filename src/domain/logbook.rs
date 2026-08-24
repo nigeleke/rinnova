@@ -45,7 +45,7 @@ impl Logbook {
             self.medications
                 .get_mut(&id)
                 .map(|existing| *existing = medication)
-                .ok_or(LogbookError::InvalidMedication(id))
+                .ok_or(LogbookError::MedicationNotFound(id))
         }
     }
 
@@ -56,7 +56,7 @@ impl Logbook {
             self.medications
                 .remove(&id)
                 .map(|_| ())
-                .ok_or(LogbookError::InvalidMedication(id))
+                .ok_or(LogbookError::MedicationNotFound(id))
         }
     }
 
@@ -112,7 +112,7 @@ impl Logbook {
             self.scripts
                 .get_mut(&id)
                 .map(|existing| *existing = script)
-                .ok_or(LogbookError::InvalidScript(id))
+                .ok_or(LogbookError::ScriptNotFound(id))
         }
     }
 
@@ -123,7 +123,7 @@ impl Logbook {
             self.scripts
                 .remove(&id)
                 .map(|_| ())
-                .ok_or(LogbookError::InvalidScript(id))
+                .ok_or(LogbookError::ScriptNotFound(id))
         }
     }
 
@@ -170,7 +170,7 @@ impl Logbook {
     pub fn try_remove_supply(&mut self, id: SupplyId) -> Result<(), LogbookError> {
         match self.supplies.remove(&id) {
             Some(_) => Ok(()),
-            None => Err(LogbookError::InvalidSupply(id)),
+            None => Err(LogbookError::SupplyNotFound(id)),
         }
     }
 
@@ -196,7 +196,7 @@ impl Logbook {
 
         let script = self
             .script(script_id)
-            .ok_or_else(|| LogbookError::InvalidScript(script_id))?;
+            .ok_or_else(|| LogbookError::ScriptNotFound(script_id))?;
 
         script
             .is_valid_on(issued_on)
@@ -205,7 +205,7 @@ impl Logbook {
 
         let medication = self
             .medication(medication_id)
-            .ok_or_else(|| LogbookError::InvalidMedication(medication_id))?;
+            .ok_or_else(|| LogbookError::MedicationNotFound(medication_id))?;
 
         script
             .items()

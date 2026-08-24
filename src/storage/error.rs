@@ -2,16 +2,16 @@ use thiserror::Error;
 
 #[derive(Clone, Debug, Error)]
 pub enum StorageError {
-    #[error("error.internal-error")]
+    #[error("error.unexpected-error")]
     IndexedDb,
 
-    #[error("error.internal-error")]
+    #[error("error.unexpected-error")]
     Serde,
 }
 
 impl From<&rexie::Error> for StorageError {
     fn from(error: &rexie::Error) -> Self {
-        dioxus::prelude::error!("IndexedDB error: {error}");
+        dioxus::prelude::error!("IndexedDB: {error}");
         Self::IndexedDb
     }
 }
@@ -24,7 +24,7 @@ impl From<rexie::Error> for StorageError {
 
 impl From<&serde_wasm_bindgen::Error> for StorageError {
     fn from(error: &serde_wasm_bindgen::Error) -> Self {
-        dioxus::prelude::error!("Serialization error: {error}");
+        dioxus::prelude::error!("Serialization: {error}");
         Self::Serde
     }
 }

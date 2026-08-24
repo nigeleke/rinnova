@@ -82,7 +82,7 @@ impl std::fmt::Display for Medication {
 
 fn validate(medication: Medication) -> Result<Medication, LogbookError> {
     if medication.name.is_empty() {
-        Err(LogbookError::InvalidMedication(medication.id()))
+        Err(LogbookError::MedicationNotFound(medication.id()))
     } else {
         Ok(medication)
     }

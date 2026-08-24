@@ -46,7 +46,7 @@ impl DraftRefill {
         }
     }
 
-    pub fn try_into_supply(&self) -> Result<Supply, LogbookError> {
+    pub fn try_into_supply(self) -> Result<Supply, LogbookError> {
         let issued_on = self.issued_on;
 
         let items = self
@@ -59,6 +59,10 @@ impl DraftRefill {
             .collect::<Vec<_>>();
 
         Supply::try_new(issued_on, &items)
+    }
+
+    pub fn is_valid(&self) -> bool {
+        self.clone().try_into_supply().is_ok()
     }
 }
 

@@ -63,7 +63,7 @@ fn non_existing_medication_cannot_be_removed() {
     let unknown_id = unknown.id();
 
     let result = fixture.logbook.try_remove_medication(unknown_id);
-    assert!(matches!(result, Err(LogbookError::InvalidMedication(_))));
+    assert!(matches!(result, Err(LogbookError::MedicationNotFound(_))));
 
     assert!(fixture.has_medication(id));
     assert!(!fixture.has_medication(unknown_id));
@@ -178,7 +178,7 @@ fn non_existing_script_cannot_be_removed() {
     let non_existing_id = ScriptId::new();
 
     let result = fixture.logbook.try_remove_script(non_existing_id);
-    assert!(matches!(result, Err(LogbookError::InvalidScript(_))));
+    assert!(matches!(result, Err(LogbookError::ScriptNotFound(_))));
     assert!(fixture.has_script(script_id));
 }
 
@@ -234,7 +234,7 @@ fn dispensing_for_unknown_script_is_rejected() {
     let supply_id = supply.id();
 
     let result = fixture.logbook.try_add_supply(supply);
-    assert!(matches!(result, Err(LogbookError::InvalidScript(_))));
+    assert!(matches!(result, Err(LogbookError::ScriptNotFound(_))));
 
     assert!(!fixture.has_supply(supply_id));
 }
@@ -249,7 +249,7 @@ fn dispensing_for_unknown_medication_is_rejected() {
     let supply_id = supply.id();
 
     let result = fixture.logbook.try_add_supply(supply);
-    assert!(matches!(result, Err(LogbookError::InvalidMedication(_))));
+    assert!(matches!(result, Err(LogbookError::MedicationNotFound(_))));
 
     assert!(!fixture.has_supply(supply_id));
 }

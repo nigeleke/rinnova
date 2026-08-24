@@ -20,24 +20,22 @@ remaining-supplies = {$n} remaining
 # -------------------------------------
 # Error messages
 error =
-    .internal-error = Internal error: IndexedDb {$error}
+    .unexpected-error = Unexpected error: {$error}
     .invalid-date = Invalid date
     .invalid-date-range = Invalid date range
     .matching-medication = Medication {$name} previously added
-    .duplicate-medication = Duplicated {$id}
-    .invalid-medication = Invalid {$id}
-    .invalid-draft-medication = Invalid draft medication
+    .duplicate-medication = Duplicate medication {$id}
+    .medication-not-found = Cannot find medication {$id}
     .medication-used-in-script = Medication is referenced in scripts
-    .invalid-expiry-date = Invalid expiry date {$date}
     .no-medications = Prescription has no medications
-    .duplicate-script = Duplicated {$id}
-    .invalid-script = Invalid {$id}
-    .invalid-draft-script = Invalid draft script
+    .duplicate-script = Duplicated script {$id}
+    .script-not-found = Cannot find script {$id}
     .script-used-in-supply = Script is referenced in refills
     .unknown-medication = Unknown medication {$id}
-    .invalid-supply = Invalid {$id}
-    .duplicate-supply = Duplicated {$id}
+    .duplicate-supply = Duplicated supply {$id}
+    .supply-not-found = Invalid supply {$id}
     .script-out-of-date = Script {$id} is out of date
+    .supply_has_no_medications = The refill does not contain any medications
     .medication-not-on-script = Medication {$medication_id} is not on script {$script_id}
 
 

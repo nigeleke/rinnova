@@ -16,8 +16,8 @@ pub enum LogbookError {
     #[error("error.duplicate-medication")]
     DuplicateMedication(MedicationId),
 
-    #[error("error.invalid-medication")]
-    InvalidMedication(MedicationId),
+    #[error("error.medication-not-found")]
+    MedicationNotFound(MedicationId),
 
     #[error("error.medication-used-in-script")]
     MedicationUsedInScript,
@@ -28,29 +28,26 @@ pub enum LogbookError {
     #[error("error.duplicate-script")]
     DuplicateScript(ScriptId),
 
-    #[error("error.invalid-script")]
-    InvalidScript(ScriptId),
+    #[error("error.script-not-found")]
+    ScriptNotFound(ScriptId),
 
     #[error("error.script-used-in-supply")]
     ScriptUsedInSupply,
 
-    #[error("error.script-contains-unknown-medication")]
+    #[error("error.unknown-medication")]
     UnknownMedication(MedicationId),
 
     #[error("error.duplicate-supply")]
     DuplicateSupply(SupplyId),
 
-    #[error("error.invalid-supply")]
-    InvalidSupply(SupplyId),
+    #[error("error.supply-not-found")]
+    SupplyNotFound(SupplyId),
 
     #[error("error.script-out-of-date")]
     ScriptOutOfDate(ScriptId),
 
     #[error("error.supply-has-no-medications")]
     SupplyHasNoMedications,
-
-    #[error("error.supply-has-duplicate-medications")]
-    SupplyHasDuplicateMedications,
 
     #[error("error.medication-not-on-script")]
     MedicationNotOnScript(ScriptId, MedicationId),

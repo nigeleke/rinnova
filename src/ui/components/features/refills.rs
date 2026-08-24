@@ -128,7 +128,7 @@ fn EligibleMedicationsList(items: Vec<DraftRefillItem>) -> Element {
         .filter_map(|item| match logbook.read().medication(item.medication_id) {
             Some(medication) => Some((item, medication.clone())),
             None => {
-                let error = LogbookError::InvalidMedication(item.medication_id);
+                let error = LogbookError::MedicationNotFound(item.medication_id);
                 Notification::logbook_error(&error);
                 None
             }
@@ -160,7 +160,7 @@ fn EligibleMedicationsListItem(
     let remaining_supplies = match logbook.read().script(item.script_id) {
         Some(script) => script.remaining_supplies(medication.id()),
         None => {
-            let error = LogbookError::InvalidScript(item.script_id);
+            let error = LogbookError::ScriptNotFound(item.script_id);
             Notification::logbook_error(&error);
             SupplyCount::ZERO
         }
@@ -201,9 +201,9 @@ fn EligibleSuppliesCommands(on_submit: EventHandler<Supply>) -> Element {
         button {
             title: tid!("dispensed-button.hint"),
             aria_label: tid!("dispensed-button.aria-label"),
-            disabled: draft.read().selected_items().count() == 0,
+            disabled: !draft.read().is_valid(),
             onclick: move |_| {
-                match draft.read().try_into_supply() {
+                match draft().try_into_supply() {
                     Ok(supply) => on_submit.call(supply),
                     Err(error) => Notification::logbook_error(&error),
                  }
@@ -307,7 +307,7 @@ fn PreviousSuppliesMedicationsListItem(item: SupplyItem) -> Element {
     let medication = match logbook.read().medication(medication_id) {
         Some(medication) => Some(medication.clone()),
         None => {
-            let error = LogbookError::InvalidMedication(medication_id);
+            let error = LogbookError::MedicationNotFound(medication_id);
             Notification::logbook_error(&error);
             None
         }
@@ -317,7 +317,7 @@ fn PreviousSuppliesMedicationsListItem(item: SupplyItem) -> Element {
     let script = match logbook.read().script(script_id) {
         Some(script) => Some(script.clone()),
         None => {
-            let error = LogbookError::InvalidScript(script_id);
+            let error = LogbookError::ScriptNotFound(script_id);
             Notification::logbook_error(&error);
             None
         }
