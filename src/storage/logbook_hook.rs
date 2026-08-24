@@ -14,54 +14,55 @@ pub enum PersistenceState {
 }
 
 pub fn use_logbook() -> (Signal<Logbook>, Signal<PersistenceState>) {
-    let mut logbook = use_signal(Logbook::default);
+    let logbook = use_signal(Logbook::default);
     let mut persistence = use_signal(PersistenceState::default);
-    let mut generation = use_signal(|| 0u64);
 
     // Load
-    use_resource(move || async move {
-        match load_logbook().await {
-            Ok(loaded) => {
-                logbook.set(loaded);
-                persistence.set(PersistenceState::Idle);
-            }
-            Err(error) => persistence.set(PersistenceState::Failed(error)),
-        }
-    });
+    use_resource(move || load_logbook_and_apply(logbook, persistence));
 
     // Save
     use_effect(move || {
-        let current = logbook();
-        let current_generation = *generation.peek();
-
-        if matches!(
-            *persistence.peek(),
-            PersistenceState::Idle | PersistenceState::Saving
-        ) {
-            // Order important:
-            // generation must be updated before persistence
-            let this_generation = current_generation + 1;
-            generation.set(this_generation);
+        let _ = logbook();
+        if matches!(*persistence.peek(), PersistenceState::Idle) {
             persistence.set(PersistenceState::Saving);
-
-            spawn(async move {
-                match save_logbook(&current).await {
-                    Ok(_) => {
-                        if *generation.peek() == this_generation {
-                            persistence.set(PersistenceState::Idle);
-                        }
-                    }
-                    Err(error) => {
-                        if *generation.peek() == this_generation {
-                            persistence.set(PersistenceState::Failed(error));
-                        }
-                    }
-                }
-            });
+            spawn(save_logbook(logbook, persistence));
         }
     });
 
     (logbook, persistence)
+}
+
+async fn load_logbook_and_apply(
+    mut logbook: Signal<Logbook>,
+    mut persistence: Signal<PersistenceState>,
+) {
+    match load_logbook_database().await {
+        Ok(loaded) => {
+            logbook.set(loaded);
+            persistence.set(PersistenceState::Idle);
+        }
+        Err(error) => {
+            persistence.set(PersistenceState::Failed(error));
+        }
+    }
+}
+
+async fn save_logbook(logbook: Signal<Logbook>, mut persistence: Signal<PersistenceState>) {
+    loop {
+        let snapshot = logbook.read().clone();
+
+        match save_logbook_database(&snapshot).await {
+            Ok(_) if snapshot == logbook.read().clone() => {
+                persistence.set(PersistenceState::Idle);
+                break;
+            }
+            Ok(_) => {}
+            Err(error) => {
+                persistence.set(PersistenceState::Failed(error));
+                break;
+            }
+        }
+    }
 }
 
 const DATABASE_NAME: &str = "rinnova";
@@ -78,7 +79,7 @@ async fn open_database() -> Result<Rexie, StorageError> {
         .map_err(|e| StorageError::from(&e))
 }
 
-pub async fn load_logbook() -> Result<Logbook, StorageError> {
+async fn load_logbook_database() -> Result<Logbook, StorageError> {
     let db = open_database().await?;
 
     let tx = db.transaction(&[LOGBOOK_STORE], TransactionMode::ReadOnly)?;
@@ -94,7 +95,7 @@ pub async fn load_logbook() -> Result<Logbook, StorageError> {
     }
 }
 
-pub async fn save_logbook(logbook: &Logbook) -> Result<(), StorageError> {
+async fn save_logbook_database(logbook: &Logbook) -> Result<(), StorageError> {
     let db = open_database().await?;
 
     let tx = db.transaction(&[LOGBOOK_STORE], TransactionMode::ReadWrite)?;
