@@ -117,8 +117,28 @@ fn existing_script_can_be_removed_if_expired() {
 }
 
 #[test]
-#[ignore]
-fn script_can_be_removed_if_all_supplies_used() {
+fn script_can_be_removed_if_not_in_any_supplies() {
+    let fixture = Fixture::new();
+    let today = fixture.today();
+
+    let mut fixture = fixture
+        .medication("med01")
+        .current_script("script01", &[("med01", 2)])
+        .supply("supply01", "script01", "med01", today)
+        .supply("supply02", "script01", "med01", today);
+
+    let script_id = fixture.script_id("script01");
+    let supply_id_01 = fixture.supply_id("supply01");
+    let supply_id_02 = fixture.supply_id("supply02");
+
+    assert!(fixture.logbook.try_remove_supply(supply_id_01).is_ok());
+    assert!(fixture.logbook.try_remove_supply(supply_id_02).is_ok());
+    assert!(fixture.logbook.try_remove_script(script_id).is_ok());
+    assert_eq!(fixture.logbook.scripts().count(), 0);
+}
+
+#[test]
+fn script_cannot_be_removed_if_in_any_supplies() {
     let fixture = Fixture::new();
     let today = fixture.today();
 
@@ -130,42 +150,13 @@ fn script_can_be_removed_if_all_supplies_used() {
 
     let script_id = fixture.script_id("script01");
 
-    assert!(fixture.logbook.try_remove_script(script_id).is_ok());
-    assert_eq!(fixture.logbook.scripts().count(), 0);
-}
+    let error = fixture
+        .logbook
+        .try_remove_script(script_id)
+        .expect_err("script_cannot_be_removed_if_in_any_supplies should return error");
 
-#[test]
-#[ignore]
-fn script_can_be_removed_even_if_current_and_supplies_remaining() {
-    let fixture = Fixture::new();
-    let today = fixture.today();
-
-    let mut fixture = fixture
-        .medication("med01")
-        .current_script("script01", &[("med01", 5)])
-        .supply("supply01", "script01", "med01", today);
-
-    let script_id = fixture.script_id("script01");
-
-    assert!(fixture.logbook.try_remove_script(script_id).is_ok());
-    assert_eq!(fixture.logbook.scripts().count(), 0);
-}
-
-#[test]
-#[ignore]
-fn script_can_be_removed_if_expired_and_supplies_remaining() {
-    let fixture = Fixture::new();
-    let past = fixture.past();
-
-    let mut fixture = fixture
-        .medication("med01")
-        .expired_script("script01", &[("med01", 5)])
-        .supply("supply01", "script01", "med01", past);
-
-    let script_id = fixture.script_id("script01");
-
-    assert!(fixture.logbook.try_remove_script(script_id).is_ok());
-    assert_eq!(fixture.logbook.scripts().count(), 0);
+    assert!(matches!(error, LogbookError::ScriptUsedInSupply));
+    assert_eq!(fixture.logbook.scripts().count(), 1);
 }
 
 #[test]
