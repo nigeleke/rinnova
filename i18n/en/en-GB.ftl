@@ -23,6 +23,7 @@ error =
     .unexpected-error = Unexpected error: {$error}
     .invalid-date = Invalid date
     .invalid-date-range = Invalid date range
+    .medication-name-missing = Name missing
     .matching-medication = Medication {$name} previously added
     .duplicate-medication = Duplicate medication {$id}
     .medication-not-found = Cannot find medication {$id}
@@ -35,7 +36,7 @@ error =
     .duplicate-supply = Duplicated supply {$id}
     .supply-not-found = Invalid supply {$id}
     .script-out-of-date = Script {$id} is out of date
-    .supply_has_no_medications = The refill does not contain any medications
+    .supply-has-no-medications = The refill does not contain any medications
     .medication-not-on-script = Medication {$medication_id} is not on script {$script_id}
 
 

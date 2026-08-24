@@ -18,19 +18,19 @@ impl Notification {
         self.id
     }
 
-    pub fn info(message: &str) -> Self {
+    fn info(message: &str) -> Self {
         Self::new(NotificationLevel::Info, message)
     }
 
-    pub fn _success(message: &str) -> Self {
+    fn _success(message: &str) -> Self {
         Self::new(NotificationLevel::_Success, message)
     }
 
-    pub fn warning(message: &str) -> Self {
+    fn warning(message: &str) -> Self {
         Self::new(NotificationLevel::Warning, message)
     }
 
-    pub fn error(message: &str) -> Self {
+    fn error(message: &str) -> Self {
         Self::new(NotificationLevel::Error, message)
     }
 
@@ -69,6 +69,11 @@ impl Notification {
             }
 
             LogbookError::InvalidDateRange => {
+                let error = tid!(&i18n_key);
+                Notification::warning(&error)
+            }
+
+            LogbookError::MedicationNameMissing => {
                 let error = tid!(&i18n_key);
                 Notification::warning(&error)
             }
@@ -155,7 +160,7 @@ impl std::fmt::Display for Notification {
 }
 
 fn add_notification(notification: Notification) {
-    let mut notifications = use_context::<Signal<Vec<Notification>>>();
+    let mut notifications = consume_context::<Signal<Vec<Notification>>>();
 
     let id = notification.id();
     notifications.write().push(notification);

@@ -10,6 +10,9 @@ pub enum LogbookError {
     #[error("error.invalid-date-range")]
     InvalidDateRange,
 
+    #[error("error.medication-name-missing")]
+    MedicationNameMissing,
+
     #[error("error.matching-medication")]
     MatchingMedication(String),
 

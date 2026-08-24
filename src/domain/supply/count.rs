@@ -20,7 +20,7 @@ impl std::ops::Add for SupplyCount {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
-        Self(self.0 + rhs.0)
+        Self(self.0.saturating_add(rhs.0))
     }
 }
 
@@ -34,7 +34,7 @@ impl std::ops::Sub for SupplyCount {
     type Output = SupplyCount;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        Self(self.0 - rhs.0)
+        Self(self.0.saturating_sub(rhs.0))
     }
 }
 
