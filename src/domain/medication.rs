@@ -58,6 +58,10 @@ impl Medication {
         &self.notes
     }
 
+    pub fn set_notes(&mut self, notes: &str) {
+        self.notes = notes.to_owned();
+    }
+
     pub fn equivalent_to(&self, other: &Self) -> bool {
         self.name.eq_ignore_ascii_case(&other.name)
             && self.strength.eq_ignore_ascii_case(&other.strength)

@@ -38,19 +38,28 @@ impl Logbook {
     pub fn try_update_medication(&mut self, medication: Medication) -> Result<(), LogbookError> {
         let id = medication.id();
 
-        if self.is_medication_immutable(id) {
-            Err(LogbookError::MedicationUsedInScript)
-        } else {
+        let existing = self
+            .medications
+            .get(&id)
+            .ok_or(LogbookError::MedicationNotFound(id))?;
+
+        let update_allowed = !self.is_medication_locked(id) || {
+            let mut existing_with_new_notes = existing.clone();
+            existing_with_new_notes.set_notes(medication.notes());
+            existing_with_new_notes == medication
+        };
+
+        if update_allowed {
             self.validate_medication(&medication, Validation::Update)?;
-            self.medications
-                .get_mut(&id)
-                .map(|existing| *existing = medication)
-                .ok_or(LogbookError::MedicationNotFound(id))
+            self.medications.insert(id, medication);
+            Ok(())
+        } else {
+            Err(LogbookError::MedicationUsedInScript)
         }
     }
 
     pub fn try_remove_medication(&mut self, id: MedicationId) -> Result<(), LogbookError> {
-        if self.is_medication_immutable(id) {
+        if self.is_medication_locked(id) {
             Err(LogbookError::MedicationUsedInScript)
         } else {
             self.medications
@@ -81,7 +90,7 @@ impl Logbook {
         }
     }
 
-    pub fn is_medication_immutable(&self, id: MedicationId) -> bool {
+    pub fn is_medication_locked(&self, id: MedicationId) -> bool {
         self.scripts
             .values()
             .any(|s| s.items().any(|i| i.medication_id() == id))

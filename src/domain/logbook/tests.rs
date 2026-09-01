@@ -327,3 +327,51 @@ fn dispensing_can_occur_on_script_expiry_date() {
 
     assert!(fixture.has_supply(supply_id));
 }
+
+#[test]
+fn issue_2_locked_medication_notes_can_be_updated() {
+    let mut fixture = Fixture::new()
+        .medication_with("med01", "strength01", "notes01")
+        .current_script("script01", &[("med01", 0)]);
+    let id = fixture.medication_id("med01");
+    let medication = fixture.modified_medication("med01", "med01", "strength01", "notes02");
+
+    fixture
+        .logbook
+        .try_update_medication(medication.clone())
+        .expect("should remove medication");
+
+    assert_eq!(fixture.logbook.medication(id), Some(&medication));
+}
+
+#[test]
+fn issue_2_locked_medication_name_cannot_be_updated() {
+    let mut fixture = Fixture::new()
+        .medication_with("med01", "strength01", "notes01")
+        .current_script("script01", &[("med01", 0)]);
+    let id = fixture.medication_id("med01");
+    let medication = fixture.modified_medication("med01", "med02", "strength01", "notes01");
+
+    fixture
+        .logbook
+        .try_update_medication(medication.clone())
+        .expect_err("should not remove medication");
+
+    assert_ne!(fixture.logbook.medication(id), Some(&medication));
+}
+
+#[test]
+fn issue_2_locked_medication_strength_cannot_be_updated() {
+    let mut fixture = Fixture::new()
+        .medication_with("med01", "strength01", "notes01")
+        .current_script("script01", &[("med01", 0)]);
+    let id = fixture.medication_id("med01");
+    let medication = fixture.modified_medication("med01", "med01", "strength02", "notes01");
+
+    fixture
+        .logbook
+        .try_update_medication(medication.clone())
+        .expect_err("should not remove medication");
+
+    assert_ne!(fixture.logbook.medication(id), Some(&medication));
+}

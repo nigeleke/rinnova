@@ -71,6 +71,18 @@ impl Fixture {
             .unwrap_or_else(MedicationId::new)
     }
 
+    pub fn modified_medication(
+        &self,
+        name: &str,
+        new_name: &str,
+        new_strength: &str,
+        new_notes: &str,
+    ) -> Medication {
+        let id = self.medication_id(name);
+        Medication::try_new_with_id(id, new_name, new_strength, new_notes)
+            .expect("modified medication should be valid")
+    }
+
     pub fn current_script(mut self, name: &'static str, items: &[(&str, usize)]) -> Self {
         let script = self.build_current_script(items);
         self.script(name, script)
